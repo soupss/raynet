@@ -11,10 +11,17 @@ static void signal_handler() {
 static int callback_echo(struct lws *wsi, enum lws_callback_reasons reason,
         void *user, void *in, size_t len) {
     switch(reason) {
-        case LWS_CALLBACK_RECEIVE:
-            printf("echo");
+        case LWS_CALLBACK_RECEIVE:;
+            char * in2 = (char *) in;
+
+            for (int i = 0; i < len; i++)
+            {
+               printf("%c",in2[i]);
+            }
+            
             break;
         default:
+            printf ("%d \n", (int) reason);
             break;
     }
     return 0;
