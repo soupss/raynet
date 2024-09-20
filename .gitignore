@@ -1,2 +1,7 @@
-obj/
-bin/
+**/obj/
+**/bin/
+**/build/
+**/.cache/
+**/compile_commands.json
+**/tags
+.gitignore

@@ -1,18 +1,18 @@
-CC := emcc
+CC := gcc
 SRC_DIR := src
 INC_DIR := inc
 OBJ_DIR := obj
 BIN_DIR := bin
-OUT := $(BIN_DIR)/out.html
+OUT := $(BIN_DIR)/out
 
-RAYLIB_DIR := /Users/anton/Development/raylib/src
-RAYLIB_WEB_DIR := $(RAYLIB_DIR)/web
-RAYLIB_WEB_LIB := $(RAYLIB_WEB_DIR)/libraylib.a
+# RAYLIB_DIR := /Users/anton/Development/raylib/src
+# RAYLIB_WEB_DIR := $(RAYLIB_DIR)/web
+# RAYLIB_WEB_LIB := $(RAYLIB_WEB_DIR)/libraylib.a
 
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
 OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
-CFLAGS := -I$(INC_DIR) -I$(RAYLIB_DIR) -I$(RAYLIB_DIR)/external -Wall -Wextra
-LDFLAGS := $(RAYLIB_WEB_LIB) -s USE_GLFW=3 -s ASYNCIFY
+CFLAGS := -I$(INC_DIR) $(shell pkg-config --cflags libwebsockets) $(shell pkg-config --cflags openssl) -Wall -Wextra
+LDFLAGS := $(shell pkg-config --libs libwebsockets)
 
 .PHONY: all clean
 
