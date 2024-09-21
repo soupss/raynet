@@ -1,5 +1,5 @@
-#ifndef STATE_H
-#define STATE_H
+#ifndef C_STATE_H
+#define C_STATE_H
 
 #include <raylib.h>
 #include <emscripten/websocket.h>
@@ -10,13 +10,13 @@
 #define CAMERA_DISTANCE 50
 #define CAMERA_FOV 90
 
-typedef struct State {
+typedef struct CState {
     Vector3 player;
     Vector3 enemy;
     Camera3D camera;
     EMSCRIPTEN_WEBSOCKET_T socket;
-} State;
+} CState;
 
-State *state_create();
+CState *c_state_create();
 
 #endif

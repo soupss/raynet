@@ -1,7 +1,7 @@
-#include "state.h"
+#include "c_state.h"
 
-State *state_create() {
-    State *s = malloc(sizeof(State));
+CState *c_state_create() {
+    CState *s = malloc(sizeof(CState));
     s->player = (Vector3){ 0, 0, PADDLE_SPACING };
     s->enemy = (Vector3){ 0, 0, -PADDLE_SPACING };
     s->camera = (Camera3D){ 0 };
