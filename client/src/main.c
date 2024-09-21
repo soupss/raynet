@@ -1,6 +1,9 @@
 #include <raylib.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <emscripten/websocket.h>
+#include "communication.h"
+
 
 int main() {
     InitWindow(1, 1, "hlkjlkjj");
@@ -16,7 +19,7 @@ int main() {
     camera.up = (Vector3){ 0, 1, 0 };
     camera.fovy = 45;
     camera.projection = CAMERA_PERSPECTIVE;
-
+    initSocket();
 
     while(!WindowShouldClose()) {
         cube_pos.y += cube_dir * 0.1f;
