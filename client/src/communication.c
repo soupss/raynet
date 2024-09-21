@@ -24,16 +24,17 @@ EM_BOOL onclose(int eventType, const EmscriptenWebSocketCloseEvent *websocketEve
 }
 EM_BOOL onmessage(int eventType, const EmscriptenWebSocketMessageEvent *websocketEvent, void *userData) {
     puts("onmessage");
-    if (websocketEvent->isText) {
-        // For only ascii chars.
-        printf("message: %s\n", websocketEvent->data);
-    }
-
-    EMSCRIPTEN_RESULT result;
-    result = emscripten_websocket_close(websocketEvent->socket, 1000, "no reason");
-    if (result) {
-        printf("Failed to emscripten_websocket_close(): %d\n", result);
-    }
+    // if (websocketEvent->isText) {
+    //     // For only ascii chars.
+    //     printf("message: %s\n", websocketEvent->data);
+    // }
+    double * t = websocketEvent->data;
+    printf("message: %f , %f, %f", t[0], t[1], t[2]);
+    // EMSCRIPTEN_RESULT result;
+    // result = emscripten_websocket_close(websocketEvent->socket, 1000, "no reason");
+    // if (result) {
+    //     printf("Failed to emscripten_websocket_close(): %d\n", result);
+    // }
     
     return EM_TRUE;
 }

@@ -22,10 +22,7 @@ int main() {
     initSocket();
 
     while(!WindowShouldClose()) {
-        cube_pos.y += cube_dir * 0.1f;
-        if (cube_pos.y > 5 || cube_pos.y < -5) {
-            cube_dir *= -1;
-        }
+        
         BeginDrawing();
         ClearBackground(RAYWHITE);
         BeginMode3D(camera);
