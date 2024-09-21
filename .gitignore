@@ -6,3 +6,4 @@
 **/tags
 .gitignore
 .vscode/
+**/makefile
