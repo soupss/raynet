@@ -9,10 +9,12 @@ RAYLIB_DIR := /Users/anton/Development/raylib/src
 RAYLIB_WEB_DIR := $(RAYLIB_DIR)/web
 RAYLIB_WEB_LIB := $(RAYLIB_WEB_DIR)/libraylib.a
 
+EM_INC_DIR := /Users/anton/emsdk/upstream/emscripten/cache/sysroot/include
+
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
 OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
-CFLAGS := -I$(INC_DIR) -I$(RAYLIB_DIR) -Wall -Wextra
-LDFLAGS := $(RAYLIB_WEB_LIB) -L$(RAYLIB_DIR) -s USE_GLFW=3 -s ASYNCIFY --shell-file $(RAYLIB_DIR)/minshell.html
+CFLAGS := -I$(INC_DIR) -I$(RAYLIB_DIR) -I$(EM_INC_DIR) -Wall -Wextra
+LDFLAGS := $(RAYLIB_WEB_LIB) -L$(RAYLIB_DIR) -s USE_GLFW=3 -s ASYNCIFY -lwebsocket.js
 
 .PHONY: all clean
 

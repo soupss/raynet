@@ -2,50 +2,48 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <emscripten/websocket.h>
-#include "communication.h"
+#include "websocket.h"
+#include "state.h"
 
-#define PADDLE_SPACING 20
-#define CAMERA_DISTANCE 50
-
-void update(Vector3 *p_pos, Camera3D camera) {
-    Ray mouse = GetMouseRay(GetMousePosition(), camera);
-    float t = (PADDLE_SPACING - mouse.position.z) / mouse.direction.z;
-    p_pos->x = mouse.position.x + mouse.direction.x * t;
-    p_pos->y = mouse.position.y + mouse.direction.y * t;
+static void _update(State *s) {
+    Ray mouse = GetMouseRay(GetMousePosition(), s->camera);
+    float d = (PADDLE_SPACING - mouse.position.z) / mouse.direction.z; // distance from camera to paddle
+    float pos[2] = {mouse.position.x + mouse.direction.x * d,
+                    mouse.position.y + mouse.direction.y * d};
+    ws_send_player_state(s->socket, pos);
+    s->player.x = pos[0];
+    s->player.y = pos[1];
 }
 
-void draw(Vector3 player_pos, Vector3 opponent_pos, Camera3D camera) {
-    Vector3 paddle_size = { 10, 10, 0 };
+static void _draw(State *s) {
+    Vector3 paddle_size = { PADDLE_SIZE, PADDLE_SIZE, 0 };
     BeginDrawing();
     ClearBackground(GRAY);
-    BeginMode3D(camera);
-    DrawCubeWiresV(player_pos, paddle_size, GREEN);
-    DrawCubeWiresV(opponent_pos, paddle_size, GREEN);
+    BeginMode3D(s->camera);
+    DrawCubeWiresV(s->player, paddle_size, GREEN);
+    DrawCubeWiresV(s->enemy, paddle_size, GREEN);
     EndMode3D();
     EndDrawing();
 }
 
+static void _loop(void *arg) {
+    State *s = (State*)arg;
+    _update(s);
+    _draw(s);
+}
+
 int main() {
     InitWindow(1, 1, "hlkjlkjj");
-    SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.6,
-            GetMonitorHeight(GetCurrentMonitor()) * 0.6);
-    SetTargetFPS(60);
-
-    Vector3 player_pos = { 0, 0, PADDLE_SPACING };
-    Vector3 opponent_pos = { 0, 0, -PADDLE_SPACING };
-
-    Camera3D camera = { 0 };
-    camera.position = (Vector3){ 0, 0, CAMERA_DISTANCE };
-    camera.target = (Vector3){ 0, 0, 0 };
-    camera.up = (Vector3){ 0, 1, 0 };
-    camera.fovy = 90;
-    camera.projection = CAMERA_PERSPECTIVE;
-
-    initSocket();
-    while(!WindowShouldClose()) {
-        update(&player_pos, camera);
-        draw(player_pos, opponent_pos, camera);
+    float width = GetMonitorWidth(GetCurrentMonitor()) * 0.6;
+    float height = width * 0.6;
+    SetWindowSize(width, height);
+    State *s = state_create();
+    EMSCRIPTEN_WEBSOCKET_T ws = ws_init(s);
+    s->socket = ws;
+    if (ws == -1) {
+        return 0;
     }
+    emscripten_set_main_loop_arg(_loop, s, FPS, 1);
     CloseWindow();
     return 0;
 }
