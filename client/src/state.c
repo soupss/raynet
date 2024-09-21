@@ -13,4 +13,3 @@ State *state_create() {
     s->socket = 0; // needs to be assigned manually
     return s;
 }
-
