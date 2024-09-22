@@ -11,13 +11,29 @@ static void _c_update(CState *s) {
     float d = (PADDLE_SPACING - mouse.position.z) / mouse.direction.z; // distance from camera to paddle
     float pos[2] = {mouse.position.x + mouse.direction.x * d,
                     mouse.position.y + mouse.direction.y * d};
+    float x_min = -ARENA_WIDTH / 2.0 + PADDLE_WIDTH / 2.0;
+    float x_max = ARENA_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
+    if (pos[0] < x_min) {
+        pos[0] = x_min;
+    }
+    else if (pos[0] > x_max) {
+        pos[0] = x_max;
+    }
+    float y_min = -ARENA_HEIGHT / 2.0 + PADDLE_HEIGHT / 2.0;
+    float y_max = ARENA_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0;
+    if (pos[1] < y_min) {
+        pos[1] = y_min;
+    }
+    else if (pos[1] > y_max) {
+        pos[1] = y_max;
+    }
     c_ws_send_player_state(s->socket, pos);
     s->player.x = pos[0];
     s->player.y = pos[1];
 }
 
 static void _c_draw(CState *s) {
-    Vector3 paddle_size = { PADDLE_SIZE, PADDLE_SIZE, 0 };
+    Vector3 paddle_size = { PADDLE_WIDTH, PADDLE_HEIGHT, 0 };
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
