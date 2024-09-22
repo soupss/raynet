@@ -7,4 +7,9 @@
 #define SEND_ROLE_1 4
 #define SEND_ROLE_2 5
 
+#define PADDLE_SPACING 50
+#define ARENA_LENGTH (PADDLE_SPACING * 2)
+#define ARENA_WIDTH 100
+#define ARENA_HEIGHT 50
+
 #endif

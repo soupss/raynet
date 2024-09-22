@@ -23,7 +23,6 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
     CState *state = (CState *)user_data;
     unsigned char type = ((unsigned char *) e->data)[0];
     void * data = &((unsigned char *) e->data)[1];
-
     switch (type)
     {
     case SEND_PADDLE_PLAYER_1:

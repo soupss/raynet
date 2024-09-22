@@ -5,6 +5,7 @@
 #include "s_state.h"
 #include "s_websocket.h"
 #include "s_constants.h"
+#include "shared_constants.h"
 
 static int interrupted = 0;
 
@@ -21,17 +22,17 @@ static void _s_thread_service_loop(struct lws_context *context) {
 
 static void _s_game_loop(SState *state, double dt) {
     state->ball->pos[0] += state->ball->speed[0]*dt;
-    if (state->ball->pos[0] > 60 || state->ball->pos[0] < -60) {
+    if (state->ball->pos[0] > ARENA_WIDTH / 2.0 || state->ball->pos[0] < -ARENA_WIDTH / 2.0) {
         state->ball->pos[0] -= state->ball->speed[0]*dt;
         state->ball->speed[0] *= -1;
     }
     state->ball->pos[1] += state->ball->speed[1]*dt;
-    if (state->ball->pos[1] > 40 || state->ball->pos[1] < -40) {
+    if (state->ball->pos[1] > ARENA_HEIGHT / 2.0 || state->ball->pos[1] < -ARENA_HEIGHT / 2.0) {
         state->ball->pos[1] -= state->ball->speed[1]*dt;
         state->ball->speed[1] *= -1;
     }
     state->ball->pos[2] += state->ball->speed[2]*dt;
-    if (state->ball->pos[2] > 100 || state->ball->pos[2] < -100) {
+    if (state->ball->pos[2] > ARENA_LENGTH / 2.0 || state->ball->pos[2] < -ARENA_LENGTH / 2.0) {
         state->ball->pos[2] -= state->ball->speed[2]*dt;
         state->ball->speed[2] *= -1;
     }
