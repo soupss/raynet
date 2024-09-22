@@ -18,10 +18,6 @@ typedef struct SState {
     SBall *ball;
 } SState;
 
-typedef struct SWall {
-    float a,b,c,d;
-} SWall;
-
 SState *s_state_create();
 
 #endif

@@ -1,6 +1,8 @@
 #include <emscripten/websocket.h>
 #include <stdio.h>
 #include "c_websocket.h"
+#include "c_constants.h"
+#include "shared_constants.h"
 
 static EM_BOOL _on_open(int event_type, const EmscriptenWebSocketOpenEvent *e, void *user_data) {
     printf("Websocket open\n");
@@ -17,21 +19,14 @@ static EM_BOOL _on_error(int event_type, const EmscriptenWebSocketErrorEvent *e,
     return EM_TRUE;
 }
 
-
-//These defines should really be in a shared file for server and client
-#define SEND_PADDLE 1
-#define SEND_BALL 2
-
 static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent *e, void *user_data) {
     CState *state = (CState *)user_data;
     unsigned char type = ((unsigned char *) e->data)[0];
     void * data = &((unsigned char *) e->data)[1];
 
-    switch (type)
-    {
-    case SEND_PADDLE:
+    switch (type) {
+    case SEND_PADDLE:;
         /* Paddle */
-        
         float enemy_pos[2] = {0};
         memcpy(enemy_pos, data, 2 * sizeof(float));
         state->enemy.x = -enemy_pos[0];
@@ -47,17 +42,15 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
         return EM_TRUE;
         break;
     }
-    
 }
 
-#define URL "localhost"
 EMSCRIPTEN_WEBSOCKET_T c_ws_init(CState *state) {
     if (!emscripten_websocket_is_supported()) {
         printf("WebSockets are not supported in this environment.\n");
         return -1;
     }
     EmscriptenWebSocketCreateAttributes attr = {
-        "ws://" URL ":9000",
+        "ws://" SERVER_URL ":9000",
         NULL,
         EM_TRUE
     };
@@ -73,17 +66,16 @@ EMSCRIPTEN_WEBSOCKET_T c_ws_init(CState *state) {
     return ws;
 }
 
-#define READY 1
 void c_ws_send_player_state(EMSCRIPTEN_WEBSOCKET_T ws, float pos[2]) {
     unsigned short ready_state = 0;
     emscripten_websocket_get_ready_state(ws, &ready_state);
-    if (ready_state == READY) {
+    if (ready_state == WEBSOCKET_OPEN) {
         EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(ws, pos, 2 * sizeof(float));
         if (result != EMSCRIPTEN_RESULT_SUCCESS) {
             printf("Send state fail\n");
         }
     }
     else {
-        printf("WebSocket is not open, unable to send message\n");
+        printf("WebSocket not open\n");
     }
 }
