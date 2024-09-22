@@ -5,7 +5,7 @@
 #define WEBSOCKET_OPEN 1
 
 #define FPS 0
-#define CAMERA_DISTANCE 85
+#define CAMERA_DISTANCE 90
 #define CAMERA_FOV 90
 #define BALL_DETAIL 6
 #define ARENA_SLICES 8

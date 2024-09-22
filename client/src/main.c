@@ -71,7 +71,7 @@ static void _c_loop(void *arg) {
 
 int main() {
     InitWindow(1, 1, "hlkjlkjj");
-    float width = GetMonitorWidth(GetCurrentMonitor()) * 0.6;
+    float width = GetMonitorWidth(GetCurrentMonitor()) * 0.9;
     float height = width * 0.6;
     SetWindowSize(width, height);
     CState *s = c_state_create();

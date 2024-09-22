@@ -9,7 +9,6 @@ void s_ws_send_ball_state(SState * state) {
     int payload_size = 3 * sizeof(float);
     unsigned char buffer[LWS_PRE + 1 + payload_size];
     buffer[LWS_PRE] = SEND_BALL;
-
     memcpy(&buffer[LWS_PRE + 1], state->ball->pos, payload_size);
     if (state->p1->wsi != NULL) {
         lws_write(state->p1->wsi, &buffer[LWS_PRE], 1 + payload_size, LWS_WRITE_BINARY);
@@ -24,7 +23,6 @@ static void _s_ws_send_paddle_position(SState * state, float * pos, unsigned cha
     unsigned char buffer[LWS_PRE + 1 + payload_size];
     buffer[LWS_PRE] = player;
     memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
-
     //TODO: one nullcheck
     if (state->p1->wsi != NULL) {
         lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
