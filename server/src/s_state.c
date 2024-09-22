@@ -10,5 +10,10 @@ SState *s_state_create() {
     memcpy(s->p2->pos, pos, sizeof(pos));
     s->p1->wsi = NULL;
     s->p2->wsi = NULL;
+    s->ball = malloc(sizeof(SBall));
+    float zero[3] = {0,0,0};
+    memcpy(s->ball->pos, zero, sizeof(zero));
+    memcpy(s->ball->speed, zero, sizeof(zero));
+    memcpy(s->ball->rotation, zero, sizeof(zero));
     return s;
 }

@@ -6,16 +6,17 @@ typedef struct SPlayer {
     struct lws *wsi;
 } SPlayer;
 
-typedef struct SState {
-    SPlayer *p1;
-    SPlayer *p2;
-} SState;
-
 typedef struct SBall {
     float pos[3];
     float speed[3];
     float rotation[3];
 } SBall;
+
+typedef struct SState {
+    SPlayer *p1;
+    SPlayer *p2;
+    SBall *ball;
+} SState;
 
 typedef struct SWall {
     float a,b,c,d;
