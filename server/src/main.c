@@ -20,9 +20,21 @@ void service_loop(struct lws_context* context) {
 
 void game_loop(SState * state, double dt) {
     state->ball->pos[0] += state->ball->speed[0]*dt;
-    if (state->ball->pos[0] > 50 || state->ball->pos[0] < -50) {
+    if (state->ball->pos[0] > 60 || state->ball->pos[0] < -60) {
         state->ball->pos[0] -= state->ball->speed[0]*dt;
         state->ball->speed[0] *= -1;
+    }
+
+    state->ball->pos[1] += state->ball->speed[1]*dt;
+    if (state->ball->pos[1] > 40 || state->ball->pos[1] < -40) {
+        state->ball->pos[1] -= state->ball->speed[1]*dt;
+        state->ball->speed[1] *= -1;
+    }
+
+    state->ball->pos[2] += state->ball->speed[2]*dt;
+    if (state->ball->pos[2] > 100 || state->ball->pos[2] < -100) {
+        state->ball->pos[2] -= state->ball->speed[2]*dt;
+        state->ball->speed[2] *= -1;
     }
 }
 #define TICK_RATE 120
@@ -32,6 +44,8 @@ int main() {
     SState * state = lws_context_user(context);
 
     state->ball->speed[0] = 45;
+    state->ball->speed[1] = 100;
+    state->ball->speed[2] = 150;
     //Doesn't work, need to compile libwebsocket with flags that allow threadpooling
     //const struct lws_threadpool_create_args settings = {1,10};
     //lws_threadpool_create(context,&settings, "Thread %i");
