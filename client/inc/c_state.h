@@ -4,8 +4,14 @@
 #include <raylib.h>
 #include <emscripten/websocket.h>
 
+typedef enum CPLAYER_SIDE {
+    SIDE_UNASSIGNED = 0,
+    SIDE_1 = 1,
+    SIDE_2 = 2
+} CPLAYER_SIDE;
+
 typedef struct CState {
-    int role; //1 player1, 0 nothing, -1 player2
+    CPLAYER_SIDE side;
     Vector3 player1;
     Vector3 player2;
     Vector3 ball;
