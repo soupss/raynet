@@ -1,7 +1,10 @@
 #ifndef SHARED_CONSTANTS_H
 #define SHARED_CONSTANTS_H
 
-#define SEND_PADDLE 1
-#define SEND_BALL 2
+#define SEND_PADDLE_PLAYER_1 1
+#define SEND_PADDLE_PLAYER_2 2
+#define SEND_BALL 3
+#define SEND_ROLE_1 4
+#define SEND_ROLE_2 5
 
 #endif

@@ -24,19 +24,31 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
     unsigned char type = ((unsigned char *) e->data)[0];
     void * data = &((unsigned char *) e->data)[1];
 
-    switch (type) {
-    case SEND_PADDLE:;
+    switch (type)
+    {
+    case SEND_PADDLE_PLAYER_1:
+        if (state->role == 1) {break;}
         /* Paddle */
-        float enemy_pos[2] = {0};
-        memcpy(enemy_pos, data, 2 * sizeof(float));
-        state->enemy.x = -enemy_pos[0];
-        state->enemy.y = enemy_pos[1];
-        return EM_TRUE;
+        state->player1.x = ((float *) data)[0];
+        state->player1.y = ((float *) data)[1];
+        break;
+    case SEND_PADDLE_PLAYER_2:
+        if (state->role == -1) {break;}
+        /* Paddle */
+        state->player2.x = ((float *) data)[0];
+        state->player2.y = ((float *) data)[1];
         break;
     case SEND_BALL:
         /* Ball */
         memcpy(&state->ball, data, 3*sizeof(float));
-        return EM_TRUE;
+        break;
+    case SEND_ROLE_1:
+        state->camera.position.z = CAMERA_DISTANCE;
+        state->role = 1;
+        break;
+    case SEND_ROLE_2:
+        state->camera.position.z = -CAMERA_DISTANCE;
+        state->role = -1;
         break;
     default:
         return EM_TRUE;

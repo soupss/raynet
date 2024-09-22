@@ -8,7 +8,7 @@
 
 static void _c_update(CState *s) {
     Ray mouse = GetMouseRay(GetMousePosition(), s->camera);
-    float d = (PADDLE_SPACING - mouse.position.z) / mouse.direction.z; // distance from camera to paddle
+    float d = (s->role*PADDLE_SPACING - mouse.position.z) / mouse.direction.z; // distance from camera to paddle
     float pos[2] = {mouse.position.x + mouse.direction.x * d,
                     mouse.position.y + mouse.direction.y * d};
     float x_min = -ARENA_WIDTH / 2.0 + PADDLE_WIDTH / 2.0;
@@ -28,8 +28,14 @@ static void _c_update(CState *s) {
         pos[1] = y_max;
     }
     c_ws_send_player_state(s->socket, pos);
-    s->player.x = pos[0];
-    s->player.y = pos[1];
+    if (s->role == 1) {
+        s->player1.x = pos[0];
+        s->player1.y = pos[1];
+    }
+    if (s->role == -1) {
+        s->player2.x = pos[0];
+        s->player2.y = pos[1];
+    }
 }
 
 static void _c_draw(CState *s) {
@@ -37,9 +43,9 @@ static void _c_draw(CState *s) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
-    DrawCubeWiresV(s->enemy, paddle_size, GREEN);
+    DrawCubeWiresV(s->player2, paddle_size, GREEN);
     DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, DARKGREEN);
-    DrawCubeWiresV(s->player, paddle_size, GREEN);
+    DrawCubeWiresV(s->player1, paddle_size, GREEN);
     float slice_length = ARENA_LENGTH / (float)ARENA_SLICES;
     Vector3 slice_pos = { 0, 0, PADDLE_SPACING - slice_length/2.0 };
     Vector3 slice_size = { ARENA_WIDTH, ARENA_HEIGHT, slice_length };

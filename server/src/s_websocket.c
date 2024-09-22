@@ -18,27 +18,46 @@ void s_ws_send_ball_state(SState * state) {
     }
 }
 
-static void _s_ws_send_player_state(struct lws *recipient_wsi, float pos[2]) {
-    if (recipient_wsi == NULL) {
-        return;
-    }
+static void _s_ws_send_paddle_position(SState * state,float * pos, unsigned char player) {
     int payload_size = 2 * sizeof(float);
     unsigned char buffer[LWS_PRE + 1 + payload_size];
-    buffer[LWS_PRE] = SEND_PADDLE;
+    buffer[LWS_PRE] = player;
     memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
-    lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+
+    if (state->p1->wsi != NULL) {
+        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+    }
+    if (state->p2->wsi != NULL) {
+        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+    }
+}
+
+static void _s_ws_send_paddle_positions(SState * state) {
+    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
+
+    _s_ws_send_paddle_position(state, state->p1->pos, SEND_PADDLE_PLAYER_1);
+    _s_ws_send_paddle_position(state, state->p2->pos, SEND_PADDLE_PLAYER_2);
+}
+
+
+static void s_ws_send_player_role(struct lws *recipient_wsi, unsigned char role) {
+    unsigned char buffer[LWS_PRE + 1];
+    buffer[LWS_PRE] = role;
+    lws_write(recipient_wsi, &buffer[LWS_PRE], 1, LWS_WRITE_BINARY);
 }
 
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
-    SState *s = lws_context_user(lws_get_context(wsi));
+    SState *state = lws_context_user(lws_get_context(wsi));
     switch(reason) {
         case LWS_CALLBACK_ESTABLISHED:
-            if (s->p1->wsi == NULL) {
-                s->p1->wsi = wsi;
+            if (state->p1->wsi == NULL) {
+                state->p1->wsi = wsi;
+                s_ws_send_player_role(wsi,SEND_ROLE_1);
                 printf("Player 1 connect\n");
             }
-            else if (s->p2->wsi == NULL) {
-                s->p2->wsi = wsi;
+            else if (state->p2->wsi == NULL) {
+                state->p2->wsi = wsi;
+                s_ws_send_player_role(wsi,SEND_ROLE_2);
                 printf("Player 2 connect\n");
             }
             else {
@@ -47,23 +66,23 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             }
             break;
         case LWS_CALLBACK_CLOSED:
-            if (wsi == s->p1->wsi) {
-                s->p1->wsi = NULL;
+            if (wsi == state->p1->wsi) {
+                state->p1->wsi = NULL;
                 printf("Player 1 disconnect\n");
             }
-            else if (wsi == s->p2->wsi) {
-                s->p2->wsi = NULL;
+            else if (wsi == state->p2->wsi) {
+                state->p2->wsi = NULL;
                 printf("Player 2 disconnect\n");
             }
             break;
         case LWS_CALLBACK_RECEIVE:
-            if (wsi == s->p1->wsi) {
-                memcpy(s->p1->pos, in, 2 * sizeof(float));
-                _s_ws_send_player_state(s->p2->wsi, s->p1->pos);
+            if (wsi == state->p1->wsi) {
+                memcpy(state->p1->pos, in, 2 * sizeof(float));
+                _s_ws_send_paddle_positions(state);
             }
-            else if (wsi == s->p2->wsi) {
-                memcpy(s->p2->pos, in, 2 * sizeof(float));
-                _s_ws_send_player_state(s->p1->wsi, s->p2->pos);
+            else if (wsi == state->p2->wsi) {
+                memcpy(state->p2->pos, in, 2 * sizeof(float));
+                _s_ws_send_paddle_positions(state);
             }
             break;
         default:
