@@ -25,13 +25,13 @@ void game_loop(SState * state, double dt) {
         state->ball->speed[0] *= -1;
     }
 }
-
+#define TICK_RATE 120
 int main() {
     signal(SIGINT, signal_handler);
     struct lws_context *context = s_ws_create_context();
     SState * state = lws_context_user(context);
 
-    state->ball->speed[0] = 5;
+    state->ball->speed[0] = 45;
     //Doesn't work, need to compile libwebsocket with flags that allow threadpooling
     //const struct lws_threadpool_create_args settings = {1,10};
     //lws_threadpool_create(context,&settings, "Thread %i");
@@ -43,6 +43,7 @@ int main() {
     
     struct timeval t1;
     gettimeofday(&t1, NULL);
+    double accumulated_time = 0;
     while (!interrupted)
     {
         /// Calculate delta time
@@ -53,10 +54,14 @@ int main() {
         dt += (t1.tv_usec - previous_usec) / 1000.0;
         dt /= 1000;
         ///
+        accumulated_time += dt;
+
 
         game_loop(state,dt);
-        send_ball(state);
-        sleep(1);
+        if (accumulated_time * TICK_RATE > 1) {
+            send_ball(state);
+            accumulated_time = 0;
+        }
     }
 
     //Not correct way to kill a thread 
