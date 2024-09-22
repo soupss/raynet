@@ -19,8 +19,11 @@ static EM_BOOL _on_error(int event_type, const EmscriptenWebSocketErrorEvent *e,
 
 
 //These defines should really be in a shared file for server and client
-#define SEND_PADDLE 1
-#define SEND_BALL 2
+#define SEND_PADDLE_PLAYER_1 1
+#define SEND_PADDLE_PLAYER_2 2
+#define SEND_BALL 3
+#define SEND_ROLE_1 4
+#define SEND_ROLE_2 5
 
 static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent *e, void *user_data) {
     CState *state = (CState *)user_data;
@@ -29,24 +32,35 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
 
     switch (type)
     {
-    case SEND_PADDLE:
+    case SEND_PADDLE_PLAYER_1:
+        if (state->role == 1) {break;}
         /* Paddle */
-        
-        float enemy_pos[2] = {0};
-        memcpy(enemy_pos, data, 2 * sizeof(float));
-        state->enemy.x = -enemy_pos[0];
-        state->enemy.y = enemy_pos[1];
-        return EM_TRUE;
+        state->player1.x = ((float *) data)[0];
+        state->player1.y = ((float *) data)[1];
+        break;
+    case SEND_PADDLE_PLAYER_2:
+        if (state->role == -1) {break;}
+        /* Paddle */
+        state->player2.x = ((float *) data)[0];
+        state->player2.y = ((float *) data)[1];
         break;
     case SEND_BALL:
         /* Ball */
         memcpy(&state->ball, data, 3*sizeof(float));
-        return EM_TRUE;
+        break;
+    case SEND_ROLE_1:
+        state->camera.position.z = CAMERA_DISTANCE;
+        state->role = 1;
+        break;
+    case SEND_ROLE_2:
+        state->camera.position.z = -CAMERA_DISTANCE;
+        state->role = -1;
         break;
     default:
         return EM_TRUE;
         break;
     }
+    return EM_TRUE;
     
 }
 

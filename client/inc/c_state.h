@@ -13,8 +13,9 @@
 #define BALL_DETAIL 6
 
 typedef struct CState {
-    Vector3 player;
-    Vector3 enemy;
+    int role; //1 player1, 0 nothing, -1 player2
+    Vector3 player1;
+    Vector3 player2;
     Vector3 ball;
     Camera3D camera;
     EMSCRIPTEN_WEBSOCKET_T socket;
