@@ -25,6 +25,16 @@ static float distance(float x1, float y1, float x2, float y2) {
     return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)); 
 }
 
+static void _s_reset_ball(SState * state) {
+    state->ball->pos[0] = 0;
+    state->ball->pos[1] = 0;
+    state->ball->pos[2] = 0;
+
+    state->ball->speed[0] = 13;
+    state->ball->speed[1] = 15;
+    state->ball->speed[2] = 41;
+}
+
 static unsigned char _s_ball_hits_paddle(SState * state) {
     SPlayer * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
     float bx = state->ball->pos[0];
@@ -48,6 +58,10 @@ static unsigned char _s_ball_hits_paddle(SState * state) {
 }
 
 static void _s_game_loop(SState *state, double dt) {
+    state->ball->speed[0] *= 1.005*dt;
+    state->ball->speed[1] *= 1.005*dt;
+    state->ball->speed[2] *= 1.005*dt;
+
     state->ball->pos[0] += state->ball->speed[0]*dt;
     if (state->ball->pos[0] > ARENA_WIDTH / 2.0 || state->ball->pos[0] < -ARENA_WIDTH / 2.0) {
         state->ball->pos[0] -= state->ball->speed[0]*dt;
@@ -67,10 +81,7 @@ static void _s_game_loop(SState *state, double dt) {
             printf("HIT! \n");
         }
         else {
-
-            state->ball->pos[2] -= state->ball->speed[2]*dt;
-            state->ball->speed[2] *= -1;
-            //_s_reset_ball(state);
+            _s_reset_ball(state);
         }
 
     }
@@ -80,10 +91,8 @@ int main() {
     signal(SIGINT, _s_signal_handler);
     struct lws_context *context = s_ws_create_context();
     SState *state = lws_context_user(context);
+    _s_reset_ball(state);
 
-    state->ball->speed[0] = 0;
-    state->ball->speed[1] = 0;
-    state->ball->speed[2] = 40;
 
     //Spawn thread that handles requests
     //Frees up main thread to handle game loop
