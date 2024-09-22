@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "s_state.h"
 #include "s_websocket.h"
 #include "s_constants.h"
@@ -20,6 +21,32 @@ static void _s_thread_service_loop(struct lws_context *context) {
     lws_context_destroy(context);
 }
 
+static float distance(float x1, float y1, float x2, float y2) {
+    return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)); 
+}
+
+static unsigned char _s_ball_hits_paddle(SState * state) {
+    SPlayer * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
+    float bx = state->ball->pos[0];
+    float by = state->ball->pos[1];
+    float px = p->pos[0];
+    float py = p->pos[1];
+
+    unsigned char is_horizontally_between_edges = bx > px - PADDLE_WIDTH/2 && bx < px + PADDLE_WIDTH/2;
+    unsigned char is_horizontally_between_extended_edges = bx > px - PADDLE_WIDTH/2 - BALL_RADIUS && bx < px + PADDLE_WIDTH/2 + BALL_RADIUS;
+    unsigned char is_vertically_between_edges = by > py - PADDLE_HEIGHT/2 && by < py + PADDLE_HEIGHT/2;
+    unsigned char is_vertically_between_extended_edges = by > py - PADDLE_HEIGHT/2 - BALL_RADIUS && by < py + PADDLE_HEIGHT/2 + BALL_RADIUS ;
+
+    unsigned char case1 = is_horizontally_between_edges && is_vertically_between_extended_edges;
+    unsigned char case2 = is_vertically_between_edges && is_horizontally_between_extended_edges;
+    unsigned char case3 = distance(bx,by,px + PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case4 = distance(bx,by,px - PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case5 = distance(bx,by,px + PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case6 = distance(bx,by,px - PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
+
+    return case1 || case2 || case3 || case4 || case5 || case6 ;
+}
+
 static void _s_game_loop(SState *state, double dt) {
     state->ball->pos[0] += state->ball->speed[0]*dt;
     if (state->ball->pos[0] > ARENA_WIDTH / 2.0 || state->ball->pos[0] < -ARENA_WIDTH / 2.0) {
@@ -33,8 +60,19 @@ static void _s_game_loop(SState *state, double dt) {
     }
     state->ball->pos[2] += state->ball->speed[2]*dt;
     if (state->ball->pos[2] > ARENA_LENGTH / 2.0 || state->ball->pos[2] < -ARENA_LENGTH / 2.0) {
-        state->ball->pos[2] -= state->ball->speed[2]*dt;
-        state->ball->speed[2] *= -1;
+            printf("FLIPPING! \n");
+        if (_s_ball_hits_paddle(state)) {
+            state->ball->pos[2] -= state->ball->speed[2]*dt;
+            state->ball->speed[2] *= -1;
+            printf("HIT! \n");
+        }
+        else {
+
+            state->ball->pos[2] -= state->ball->speed[2]*dt;
+            state->ball->speed[2] *= -1;
+            //_s_reset_ball(state);
+        }
+
     }
 }
 
@@ -43,9 +81,9 @@ int main() {
     struct lws_context *context = s_ws_create_context();
     SState *state = lws_context_user(context);
 
-    state->ball->speed[0] = 45;
-    state->ball->speed[1] = 100;
-    state->ball->speed[2] = 150;
+    state->ball->speed[0] = 0;
+    state->ball->speed[1] = 0;
+    state->ball->speed[2] = 40;
 
     //Spawn thread that handles requests
     //Frees up main thread to handle game loop

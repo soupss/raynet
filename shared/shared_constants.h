@@ -12,4 +12,9 @@
 #define ARENA_WIDTH 100
 #define ARENA_HEIGHT 50
 
+#define PADDLE_WIDTH 12
+#define PADDLE_HEIGHT 10
+
+#define BALL_RADIUS 2.5
+
 #endif
