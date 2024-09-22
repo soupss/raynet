@@ -58,9 +58,9 @@ static unsigned char _s_ball_hits_paddle(SState * state) {
 }
 
 static void _s_game_loop(SState *state, double dt) {
-    state->ball->speed[0] *= 1.005*dt;
-    state->ball->speed[1] *= 1.005*dt;
-    state->ball->speed[2] *= 1.005*dt;
+    state->ball->speed[0] += 0.005*dt;
+    state->ball->speed[1] += 0.005*dt;
+    state->ball->speed[2] += 0.005*dt;
 
     state->ball->pos[0] += state->ball->speed[0]*dt;
     if (state->ball->pos[0] > ARENA_WIDTH / 2.0 || state->ball->pos[0] < -ARENA_WIDTH / 2.0) {
