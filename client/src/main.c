@@ -18,7 +18,7 @@ static void _c_update(CState *s) {
 static void _c_draw(CState *s) {
     Vector3 paddle_size = { PADDLE_SIZE, PADDLE_SIZE, 1 };
     BeginDrawing();
-    ClearBackground(GRAY);
+    ClearBackground(BLACK);
     BeginMode3D(s->camera);
     DrawCubeWiresV(s->enemy, paddle_size, GREEN);
     DrawSphereEx(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, GREEN);
