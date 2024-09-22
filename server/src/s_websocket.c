@@ -3,8 +3,9 @@
 #include "shared_constants.h"
 
 void s_ws_send_ball_state(SState * state) {
-    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
-
+    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {
+        return;
+    }
     int payload_size = 3 * sizeof(float);
     unsigned char buffer[LWS_PRE + 1 + payload_size];
     buffer[LWS_PRE] = SEND_BALL;
@@ -18,12 +19,13 @@ void s_ws_send_ball_state(SState * state) {
     }
 }
 
-static void _s_ws_send_paddle_position(SState * state,float * pos, unsigned char player) {
+static void _s_ws_send_paddle_position(SState * state, float * pos, unsigned char player) {
     int payload_size = 2 * sizeof(float);
     unsigned char buffer[LWS_PRE + 1 + payload_size];
     buffer[LWS_PRE] = player;
     memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
 
+    //TODO: one nullcheck
     if (state->p1->wsi != NULL) {
         lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
     }
@@ -33,14 +35,13 @@ static void _s_ws_send_paddle_position(SState * state,float * pos, unsigned char
 }
 
 static void _s_ws_send_paddle_positions(SState * state) {
+    //TODO: one nullcheck
     if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
-
     _s_ws_send_paddle_position(state, state->p1->pos, SEND_PADDLE_PLAYER_1);
     _s_ws_send_paddle_position(state, state->p2->pos, SEND_PADDLE_PLAYER_2);
 }
 
-
-static void s_ws_send_player_role(struct lws *recipient_wsi, unsigned char role) {
+static void _s_ws_send_assign_side(struct lws *recipient_wsi, unsigned char role) {
     unsigned char buffer[LWS_PRE + 1];
     buffer[LWS_PRE] = role;
     lws_write(recipient_wsi, &buffer[LWS_PRE], 1, LWS_WRITE_BINARY);
@@ -52,12 +53,12 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         case LWS_CALLBACK_ESTABLISHED:
             if (state->p1->wsi == NULL) {
                 state->p1->wsi = wsi;
-                s_ws_send_player_role(wsi,SEND_ROLE_1);
+                _s_ws_send_assign_side(wsi, ASSIGN_SIDE_1);
                 printf("Player 1 connect\n");
             }
             else if (state->p2->wsi == NULL) {
                 state->p2->wsi = wsi;
-                s_ws_send_player_role(wsi,SEND_ROLE_2);
+                _s_ws_send_assign_side(wsi, ASSIGN_SIDE_2);
                 printf("Player 2 connect\n");
             }
             else {
