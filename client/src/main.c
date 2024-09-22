@@ -5,6 +5,7 @@
 #include "c_websocket.h"
 #include "c_state.h"
 #include "c_constants.h"
+#include "shared_constants.h"
 
 static void _c_update(CState *s) {
     Ray mouse = GetMouseRay(GetMousePosition(), s->camera);
