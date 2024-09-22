@@ -4,5 +4,5 @@
 #include <libwebsockets.h>
 
 struct lws_context *s_ws_create_context();
-
+void send_ball(SState* state);
 #endif

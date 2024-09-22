@@ -20,7 +20,7 @@ void service_loop(struct lws_context* context) {
 
 void game_loop(SState * state, double dt) {
     state->ball->pos[0] += state->ball->speed[0]*dt;
-    if (state->ball->pos[0] > 5 || state->ball->pos[0] < -5) {
+    if (state->ball->pos[0] > 50 || state->ball->pos[0] < -50) {
         state->ball->pos[0] -= state->ball->speed[0]*dt;
         state->ball->speed[0] *= -1;
     }
@@ -31,6 +31,7 @@ int main() {
     struct lws_context *context = s_ws_create_context();
     SState * state = lws_context_user(context);
 
+    state->ball->speed[0] = 5;
     //Doesn't work, need to compile libwebsocket with flags that allow threadpooling
     //const struct lws_threadpool_create_args settings = {1,10};
     //lws_threadpool_create(context,&settings, "Thread %i");
@@ -54,6 +55,8 @@ int main() {
         ///
 
         game_loop(state,dt);
+        send_ball(state);
+        sleep(1);
     }
 
     //Not correct way to kill a thread 
