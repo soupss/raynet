@@ -17,13 +17,37 @@ static EM_BOOL _on_error(int event_type, const EmscriptenWebSocketErrorEvent *e,
     return EM_TRUE;
 }
 
+
+//These defines should really be in a shared file for server and client
+#define SEND_PADDLE 1
+#define SEND_BALL 2
+
 static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent *e, void *user_data) {
     CState *state = (CState *)user_data;
-    float enemy_pos[2] = {0};
-    memcpy(enemy_pos, e->data, 2 * sizeof(float));
-    state->enemy.x = -enemy_pos[0];
-    state->enemy.y = enemy_pos[1];
-    return EM_TRUE;
+    unsigned char type = ((unsigned char *) e->data)[0];
+    void * data = &((unsigned char *) e->data)[1];
+
+    switch (type)
+    {
+    case SEND_PADDLE:
+        /* Paddle */
+        
+        float enemy_pos[2] = {0};
+        memcpy(enemy_pos, data, 2 * sizeof(float));
+        state->enemy.x = -enemy_pos[0];
+        state->enemy.y = enemy_pos[1];
+        return EM_TRUE;
+        break;
+    case SEND_BALL:
+        /* Ball */
+        memcpy(&state->ball, data, 3*sizeof(float));
+        return EM_TRUE;
+        break;
+    default:
+        return EM_TRUE;
+        break;
+    }
+    
 }
 
 #define URL "localhost"

@@ -1,14 +1,35 @@
 #include <libwebsockets.h>
 #include "s_state.h"
 
+#define SEND_PADDLE 1
+#define SEND_BALL 2
+
+void send_ball(SState * state) {
+    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
+
+    int payload_size = 3 * sizeof(float);
+    
+    unsigned char buffer[LWS_PRE + 1 + payload_size];
+    buffer[LWS_PRE] = SEND_BALL;
+
+    memcpy(&buffer[LWS_PRE + 1], state->ball->pos, payload_size);
+    if (state->p1->wsi != NULL) {
+        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+    if (state->p2->wsi != NULL) {
+        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+}
+
 static void _s_ws_send_player_state(struct lws *recipient_wsi, float pos[2]) {
     if (recipient_wsi == NULL) {
         return;
     }
     int payload_size = 2 * sizeof(float);
-    unsigned char buffer[LWS_PRE + payload_size];
-    memcpy(&buffer[LWS_PRE], pos, payload_size);
-    lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    unsigned char buffer[LWS_PRE + 1 + payload_size];
+    buffer[LWS_PRE] = SEND_PADDLE;
+    memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
+    lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
 }
 
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
