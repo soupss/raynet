@@ -50,7 +50,7 @@ int main() {
     //Spawn thread that handles requests
     //Frees up main thread to handle game loop
     pthread_t *t = malloc(sizeof(pthread_t));
-    pthread_create(t, NULL, &_s_thread_service_loop, context);
+    pthread_create(t, NULL, (void * _Nullable (* _Nonnull)(void * _Nullable)) &_s_thread_service_loop, context);
 
     struct timeval t1;
     gettimeofday(&t1, NULL);
@@ -64,8 +64,10 @@ int main() {
         double dt = (t1.tv_sec - previous_sec) * 1000.0;
         dt += (t1.tv_usec - previous_usec) / 1000.0;
         dt /= 1000;
-        accumulated_time += dt;
+        
         _s_game_loop(state, dt);
+
+        accumulated_time += dt;
         if (accumulated_time * TICK_RATE > 1) {
             s_ws_send_ball_state(state);
             accumulated_time = 0;

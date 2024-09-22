@@ -43,9 +43,11 @@ static void _c_draw(CState *s) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
-    DrawCubeWiresV(s->player2, paddle_size, GREEN);
     DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, DARKGREEN);
     DrawCubeWiresV(s->player1, paddle_size, GREEN);
+    DrawCubeV(s->player1, paddle_size, RED);
+    DrawCubeWiresV(s->player2, paddle_size, GREEN);
+    DrawCubeV(s->player2, paddle_size, BLUE);
     float slice_length = ARENA_LENGTH / (float)ARENA_SLICES;
     Vector3 slice_pos = { 0, 0, PADDLE_SPACING - slice_length/2.0 };
     Vector3 slice_size = { ARENA_WIDTH, ARENA_HEIGHT, slice_length };
