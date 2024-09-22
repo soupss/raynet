@@ -11,6 +11,16 @@ typedef struct SState {
     SPlayer *p2;
 } SState;
 
+typedef struct SBall {
+    float pos[3];
+    float speed[3];
+    float rotation[3];
+} SBall;
+
+typedef struct SWall {
+    float a,b,c,d;
+} SWall;
+
 SState *s_state_create();
 
 #endif
