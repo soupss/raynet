@@ -1,17 +1,11 @@
 #include <libwebsockets.h>
-#include "s_state.h"
+#include "s_websocket.h"
+#include "shared_constants.h"
 
-#define SEND_PADDLE_PLAYER_1 1
-#define SEND_PADDLE_PLAYER_2 2
-#define SEND_BALL 3
-#define SEND_ROLE_1 4
-#define SEND_ROLE_2 5
-
-void send_ball(SState * state) {
+void s_ws_send_ball_state(SState * state) {
     if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
 
     int payload_size = 3 * sizeof(float);
-    
     unsigned char buffer[LWS_PRE + 1 + payload_size];
     buffer[LWS_PRE] = SEND_BALL;
 

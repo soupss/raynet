@@ -1,4 +1,5 @@
 #include "c_state.h"
+#include "c_constants.h"
 
 CState *c_state_create() {
     CState *s = malloc(sizeof(CState));

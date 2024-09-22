@@ -4,6 +4,7 @@
 #include <emscripten/websocket.h>
 #include "c_websocket.h"
 #include "c_state.h"
+#include "c_constants.h"
 
 static void _c_update(CState *s) {
     Ray mouse = GetMouseRay(GetMousePosition(), s->camera);
@@ -22,20 +23,19 @@ static void _c_update(CState *s) {
 }
 
 static void _c_draw(CState *s) {
-    Vector3 paddle_size = { PADDLE_SIZE, PADDLE_SIZE, 1 };
+    Vector3 paddle_size = { PADDLE_SIZE, PADDLE_SIZE, 0 };
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
     DrawCubeWiresV(s->player2, paddle_size, GREEN);
-    DrawSphereEx(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, GREEN);
-    DrawSphereWires(s->ball, BALL_RADIUS * 1.005, BALL_DETAIL, BALL_DETAIL, DARKGREEN);
+    DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, DARKGREEN);
     DrawCubeWiresV(s->player1, paddle_size, GREEN);
-    float thick = PADDLE_SPACING * 1/4.0;
-    Vector3 pos = { 0, 0, PADDLE_SPACING-thick/2.0 };
-    Vector3 size = { 100, 50, thick };
+    float slice_length = ARENA_LENGTH / (float)ARENA_SLICES;
+    Vector3 slice_pos = { 0, 0, PADDLE_SPACING - slice_length/2.0 };
+    Vector3 slice_size = { ARENA_WIDTH, ARENA_HEIGHT, slice_length };
     for (int i = 0; i < 8; i++) {
-        DrawCubeWiresV(pos, size, GREEN);
-        pos.z -= thick;
+        DrawCubeWiresV(slice_pos, slice_size, GREEN);
+        slice_pos.z -= slice_length;
     }
     EndMode3D();
     EndDrawing();
