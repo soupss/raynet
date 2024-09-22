@@ -59,6 +59,9 @@ static void _c_draw(CState *s) {
         DrawCubeWiresV(slice_pos, slice_size, GREEN);
         slice_pos.z -= slice_length;
     }
+    Vector3 tracker_pos = { 0, 0, s->ball.z };
+    Vector3 tracker_size = { ARENA_WIDTH, ARENA_HEIGHT, 0 };
+    DrawCubeWiresV(tracker_pos, tracker_size, BLUE);
     EndMode3D();
     EndDrawing();
 }
