@@ -4,8 +4,8 @@
 #define SEND_PADDLE_PLAYER_1 1
 #define SEND_PADDLE_PLAYER_2 2
 #define SEND_BALL 3
-#define SEND_ROLE_1 4
-#define SEND_ROLE_2 5
+#define ASSIGN_SIDE_1 4
+#define ASSIGN_SIDE_2 5
 
 #define PADDLE_SPACING 50
 #define ARENA_LENGTH (PADDLE_SPACING * 2)

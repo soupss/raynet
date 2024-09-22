@@ -14,5 +14,6 @@ CState *c_state_create() {
     s->camera.fovy = CAMERA_FOV;
     s->camera.projection = CAMERA_PERSPECTIVE;
     s->socket = 0; // needs to be assigned manually
+    s->side = SIDE_UNASSIGNED; // needs to be assigned manually
     return s;
 }

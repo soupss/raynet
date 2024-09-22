@@ -102,7 +102,6 @@ int main() {
         double dt = (t1.tv_sec - previous_sec) * 1000.0;
         dt += (t1.tv_usec - previous_usec) / 1000.0;
         dt /= 1000;
-        
         _s_game_loop(state, dt);
 
         accumulated_time += dt;
