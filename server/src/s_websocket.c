@@ -14,10 +14,10 @@ void send_ball(SState * state) {
 
     memcpy(&buffer[LWS_PRE + 1], state->ball->pos, payload_size);
     if (state->p1->wsi != NULL) {
-        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+        lws_write(state->p1->wsi, &buffer[LWS_PRE], 1 + payload_size, LWS_WRITE_BINARY);
     }
     if (state->p2->wsi != NULL) {
-        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+        lws_write(state->p2->wsi, &buffer[LWS_PRE], 1 + payload_size, LWS_WRITE_BINARY);
     }
 }
 
