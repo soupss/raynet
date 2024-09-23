@@ -79,11 +79,12 @@ static void _s_game_loop(SState *s, double dt) {
                     (s->p1->pos_prev[0] - s->p1->pos[0]) / s->p1->pos_prev_dt,
                     (s->p1->pos_prev[1] - s->p1->pos[1]) / s->p1->pos_prev_dt,
                 };
-                printf("p1 curve (%f, %f)\n", p1_vel[0], p1_vel[1]);
                 float curve[2] = {
-                    s->ball->curve[0] - p1_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] - p1_vel[1] * BALL_CURVE_FACTOR
+                    s->ball->curve[0] * BALL_CURVE_DECREASE_FACTOR + p1_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] * BALL_CURVE_DECREASE_FACTOR + p1_vel[1] * BALL_CURVE_FACTOR
                 };
+                printf("p1 curve (%f, %f)\n", curve[0], curve[1]);
+                printf("p1 dt (%f)\n", s->p1->pos_prev_dt);
                 memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
@@ -99,11 +100,12 @@ static void _s_game_loop(SState *s, double dt) {
                     (s->p2->pos_prev[0] - s->p2->pos[0]) / s->p2->pos_prev_dt,
                     (s->p2->pos_prev[1] - s->p2->pos[1]) / s->p2->pos_prev_dt,
                 };
-                printf("p2 vel (%f, %f)\n", p2_vel[0], p2_vel[1]);
                 float curve[2] = {
-                    s->ball->curve[0] + p2_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] + p2_vel[1] * BALL_CURVE_FACTOR
+                    s->ball->curve[0] * BALL_CURVE_DECREASE_FACTOR + p2_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] * BALL_CURVE_DECREASE_FACTOR + p2_vel[1] * BALL_CURVE_FACTOR
                 };
+                printf("p2 curve (%f, %f)\n", curve[0], curve[1]);
+                printf("p2 dt (%f)\n", s->p2->pos_prev_dt);
                 memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }

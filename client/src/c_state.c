@@ -10,8 +10,8 @@ CState *c_state_create() {
     s->paddle2->pos = (Vector3){ OUT_OF_BOUNDS, 0, -PADDLE_SPACING };
     s->paddle1->vel = (Vector2){ 0, 0 };
     s->paddle2->vel = (Vector2){ 0, 0 };
-    s->paddle1->alpha = 0.0;
-    s->paddle2->alpha = 0.0;
+    s->paddle1->alpha = PADDLE_MIN_ALPHA;
+    s->paddle2->alpha = PADDLE_MIN_ALPHA;
     s->ball = (Vector3){ OUT_OF_BOUNDS, 0, 0 };
     s->camera = (Camera3D){ 0 };
     s->camera.position = (Vector3){ 0, 0, CAMERA_DISTANCE };

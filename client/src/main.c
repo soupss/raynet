@@ -52,15 +52,15 @@ static void _c_draw(CState *s) {
     BeginMode3D(s->camera);
     rlDisableDepthMask(); // for transparency
     BeginBlendMode(BLEND_ALPHA);
-    if (s->paddle1->alpha > 0) {
+    if (s->paddle1->alpha > PADDLE_MIN_ALPHA) {
         DrawCubeV(s->paddle1->pos, paddle_size, Fade(PADDLE_1_COLOR, s->paddle1->alpha));
         s->paddle1->alpha -= PADDLE_FADE_SPEED;
-        if (s->paddle1->alpha < 0) { s->paddle1->alpha = 0.0; }
+        if (s->paddle1->alpha < PADDLE_MIN_ALPHA) { s->paddle1->alpha = PADDLE_MIN_ALPHA; }
     }
-    else if (s->paddle2->alpha > 0) {
+    if (s->paddle2->alpha > PADDLE_MIN_ALPHA) {
         DrawCubeV(s->paddle2->pos, paddle_size, Fade(PADDLE_2_COLOR, s->paddle2->alpha));
         s->paddle2->alpha -= PADDLE_FADE_SPEED;
-        if (s->paddle2->alpha < 0) { s->paddle2->alpha = 0.0; }
+        if (s->paddle2->alpha < PADDLE_MIN_ALPHA) { s->paddle2->alpha = PADDLE_MIN_ALPHA; }
     }
     DrawCubeWiresV(s->paddle1->pos, paddle_size, PADDLE_1_COLOR);
     DrawCubeWiresV(s->paddle2->pos, paddle_size, PADDLE_2_COLOR);
