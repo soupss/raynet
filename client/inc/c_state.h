@@ -6,9 +6,9 @@
 #include "shared_constants.h"
 
 typedef struct CState {
-    PLAYER_SIDE side;
-    Vector3 player1;
-    Vector3 player2;
+    PADDLE_SIDE side;
+    Vector3 paddle1;
+    Vector3 paddle2;
     float p1_alpha;
     float p2_alpha;
     Vector3 ball;

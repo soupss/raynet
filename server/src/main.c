@@ -26,14 +26,14 @@ static void _s_reset_ball(SState * state) {
     state->ball->pos[1] = 0;
     state->ball->pos[2] = 0;
 
-    state->ball->speed[0] = _s_rng(1, 5);
-    state->ball->speed[1] = _s_rng(1, 5);
-    state->ball->speed[2] = 10 * ((rand() % 2) ? 1 : -1);
+    state->ball->vel[0] = _s_rng(1, 5);
+    state->ball->vel[1] = _s_rng(1, 5);
+    state->ball->vel[2] = 10 * ((rand() % 2) ? 1 : -1);
 }
 
 // should this logic be in shared?
 bool _s_paddle_hit_ball(SState * state) {
-    SPlayer * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
+    SPaddle * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
     float bx = state->ball->pos[0];
     float by = state->ball->pos[1];
     float px = p->pos[0];
@@ -55,41 +55,41 @@ bool _s_paddle_hit_ball(SState * state) {
 }
 
 static void _s_game_loop(SState *s, double dt) {
-    if (s_ws_two_players_connected(s)) {
-        s->ball->speed[0] += s->ball->speed[0] * 0.125*dt;
-        s->ball->speed[1] += s->ball->speed[1] * 0.125*dt;
-        s->ball->speed[2] += s->ball->speed[2] * 0.125*dt;
-        s->ball->pos[0] += s->ball->speed[0]*dt;
+    if (s_ws_two_paddles_connected(s)) {
+        s->ball->vel[0] += s->ball->vel[0] * 0.125*dt;
+        s->ball->vel[1] += s->ball->vel[1] * 0.125*dt;
+        s->ball->vel[2] += s->ball->vel[2] * 0.125*dt;
+        s->ball->pos[0] += s->ball->vel[0]*dt;
         bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
         bool right = s->ball->pos[0] - BALL_RADIUS < -ARENA_WIDTH / 2.0;
         if (left || right) {
-            s->ball->pos[0] -= s->ball->speed[0]*dt;
-            s->ball->speed[0] *= -1;
+            s->ball->pos[0] -= s->ball->vel[0]*dt;
+            s->ball->vel[0] *= -1;
         }
-        s->ball->pos[1] += s->ball->speed[1]*dt;
+        s->ball->pos[1] += s->ball->vel[1]*dt;
         bool top = s->ball->pos[1] + BALL_RADIUS > ARENA_HEIGHT / 2.0;
         bool bottom = s->ball->pos[1] - BALL_RADIUS < -ARENA_HEIGHT / 2.0;
         if (top || bottom) {
-            s->ball->pos[1] -= s->ball->speed[1]*dt;
-            s->ball->speed[1] *= -1;
+            s->ball->pos[1] -= s->ball->vel[1]*dt;
+            s->ball->vel[1] *= -1;
         }
-        s->ball->pos[2] += s->ball->speed[2]*dt;
-        bool player_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
-        bool player_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
-        if (player_1_side) {
+        s->ball->pos[2] += s->ball->vel[2]*dt;
+        bool paddle_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
+        bool paddle_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
+        if (paddle_1_side) {
             if (_s_paddle_hit_ball(s)) {
-                s->ball->pos[2] -= s->ball->speed[2]*dt;
-                s->ball->speed[2] *= -1;
+                s->ball->pos[2] -= s->ball->vel[2]*dt;
+                s->ball->vel[2] *= -1;
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
                 _s_reset_ball(s);
             }
         }
-        else if (player_2_side) {
+        else if (paddle_2_side) {
             if (_s_paddle_hit_ball(s)) {
-                s->ball->pos[2] -= s->ball->speed[2]*dt;
-                s->ball->speed[2] *= -1;
+                s->ball->pos[2] -= s->ball->vel[2]*dt;
+                s->ball->vel[2] *= -1;
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {

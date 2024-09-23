@@ -5,7 +5,7 @@
 #include "shared_constants.h"
 
 
-void c_ws_send_player_state(EMSCRIPTEN_WEBSOCKET_T ws, float pos[2]) {
+void c_ws_send_paddle_state(EMSCRIPTEN_WEBSOCKET_T ws, float pos[2]) {
     unsigned short ready_state = 0;
     emscripten_websocket_get_ready_state(ws, &ready_state);
     if (ready_state == WEBSOCKET_OPEN) {
@@ -43,17 +43,17 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
     switch (msg_type) {
         case MSG_TYPE_SEND_PADDLE:
             {
-                PLAYER_SIDE side;
-                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                PADDLE_SIDE side;
+                memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 float pos[2];
-                memcpy(&pos, payload + sizeof(PLAYER_SIDE), 2 * sizeof(float));
+                memcpy(&pos, payload + sizeof(PADDLE_SIDE), 2 * sizeof(float));
                 if (side == SIDE_1) {
-                    s->player1.x = pos[0];
-                    s->player1.y = pos[1];
+                    s->paddle1.x = pos[0];
+                    s->paddle1.y = pos[1];
                 }
                 if (side == SIDE_2) {
-                    s->player2.x = pos[0];
-                    s->player2.y = pos[1];
+                    s->paddle2.x = pos[0];
+                    s->paddle2.y = pos[1];
                 }
             }
             break;
@@ -62,8 +62,8 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
             break;
         case MSG_TYPE_PADDLE_HIT_BALL:
             {
-                PLAYER_SIDE side;
-                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                PADDLE_SIDE side;
+                memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 if (side == SIDE_1) {
                     s->p1_alpha = 1.0;
                 }
@@ -74,8 +74,8 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
             break;
         case MSG_TYPE_ASSIGN_SIDE:
             {
-                PLAYER_SIDE side;
-                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                PADDLE_SIDE side;
+                memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 if (side == SIDE_1) {
                     s->camera.position.z = CAMERA_DISTANCE;
                     s->side = SIDE_1;
@@ -86,15 +86,15 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 }
             }
             break;
-        case MSG_TYPE_PLAYER_DISCONNECT:
+        case MSG_TYPE_PADDLE_DISCONNECT:
             {
-                PLAYER_SIDE side;
-                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                PADDLE_SIDE side;
+                memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 if (side == SIDE_1) {
-                    s->player1.x = OUT_OF_BOUNDS;
+                    s->paddle1.x = OUT_OF_BOUNDS;
                 }
                 else if (side == SIDE_2) {
-                    s->player2.x = OUT_OF_BOUNDS;
+                    s->paddle2.x = OUT_OF_BOUNDS;
                 }
             }
             break;
