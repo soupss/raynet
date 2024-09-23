@@ -1,7 +1,7 @@
 #ifndef C_CONSTANTS
 #define C_CONSTANTS
 
-#define SERVER_URL "localhost"
+#define SERVER_HOSTNAME "localhost"
 #define WEBSOCKET_OPEN 1
 
 #define FPS 0

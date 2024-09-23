@@ -109,8 +109,10 @@ EMSCRIPTEN_WEBSOCKET_T c_ws_init(CState *state) {
         printf("WebSockets are not supported in this environment.\n");
         return -1;
     }
+    char url[256];
+    sprintf(url, "ws://%s:%d", SERVER_HOSTNAME, PORT);
     EmscriptenWebSocketCreateAttributes attr = {
-        "ws://" SERVER_URL ":9000",
+        url,
         NULL,
         EM_TRUE
     };

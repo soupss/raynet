@@ -31,7 +31,6 @@ static void _s_reset_ball(SState * state) {
     state->ball->vel[2] = 10 * ((rand() % 2) ? 1 : -1);
 }
 
-// should this logic be in shared?
 bool _s_paddle_hit_ball(SState * state) {
     SPaddle * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
     float bx = state->ball->pos[0];

@@ -139,7 +139,7 @@ static struct lws_protocols _s_ws_protocols[] = {
 struct lws_context *s_ws_create_context() {
     struct lws_context_creation_info info;
     memset(&info, 0, sizeof(info));
-    info.port = 9000;
+    info.port = PORT;
     info.protocols = _s_ws_protocols;
     info.user = s_state_create();
     struct lws_context *context = lws_create_context(&info);
