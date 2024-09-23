@@ -2,7 +2,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <math.h>
 #include <stdbool.h>
 #include "s_state.h"
@@ -17,18 +17,17 @@ static void _s_signal_handler() {
     interrupted = 1;
 }
 
-static int _s_rng(int upper, int lower) {
-    return (rand() % (upper - lower + 1)) + lower;
-}
-
 static void _s_reset_ball(SState * state) {
     state->ball->pos[0] = 0;
     state->ball->pos[1] = 0;
     state->ball->pos[2] = 0;
 
-    state->ball->vel[0] = _s_rng(1, 5);
-    state->ball->vel[1] = _s_rng(1, 5);
-    state->ball->vel[2] = 10 * ((rand() % 2) ? 1 : -1);
+    state->ball->vel[0] = 0;
+    state->ball->vel[1] = 0;
+    state->ball->vel[2] = BALL_STARTING_SPEED;
+
+    state->ball->curve[0] = 0;
+    state->ball->curve[1] = 0;
 }
 
 bool _s_paddle_hit_ball(SState * state) {
@@ -37,27 +36,24 @@ bool _s_paddle_hit_ball(SState * state) {
     float by = state->ball->pos[1];
     float px = p->pos[0];
     float py = p->pos[1];
-
-    unsigned char is_horizontally_between_edges = bx > px - PADDLE_WIDTH/2 && bx < px + PADDLE_WIDTH/2;
-    unsigned char is_horizontally_between_extended_edges = bx > px - PADDLE_WIDTH/2 - BALL_RADIUS && bx < px + PADDLE_WIDTH/2 + BALL_RADIUS;
-    unsigned char is_vertically_between_edges = by > py - PADDLE_HEIGHT/2 && by < py + PADDLE_HEIGHT/2;
-    unsigned char is_vertically_between_extended_edges = by > py - PADDLE_HEIGHT/2 - BALL_RADIUS && by < py + PADDLE_HEIGHT/2 + BALL_RADIUS ;
-
+    unsigned char is_horizontally_between_edges = bx > px - PADDLE_WIDTH /2.0 && bx < px + PADDLE_WIDTH/2.0;
+    unsigned char is_horizontally_between_extended_edges = bx > px - PADDLE_WIDTH / 2.0 - BALL_RADIUS && bx < px + PADDLE_WIDTH/2.0 + BALL_RADIUS;
+    unsigned char is_vertically_between_edges = by > py - PADDLE_HEIGHT/2.0 && by < py + PADDLE_HEIGHT/2.0;
+    unsigned char is_vertically_between_extended_edges = by > py - PADDLE_HEIGHT/2.0 - BALL_RADIUS && by < py + PADDLE_HEIGHT/2.0 + BALL_RADIUS ;
     unsigned char case1 = is_horizontally_between_edges && is_vertically_between_extended_edges;
     unsigned char case2 = is_vertically_between_edges && is_horizontally_between_extended_edges;
-    unsigned char case3 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case4 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case5 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case6 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
-
+    unsigned char case3 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2.0,py + PADDLE_HEIGHT/2.0) < BALL_RADIUS;
+    unsigned char case4 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2.0,py + PADDLE_HEIGHT/2.0) < BALL_RADIUS;
+    unsigned char case5 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2.0,py - PADDLE_HEIGHT/2.0) < BALL_RADIUS;
+    unsigned char case6 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2.0,py - PADDLE_HEIGHT/2.0) < BALL_RADIUS;
     return case1 || case2 || case3 || case4 || case5 || case6 ;
 }
 
 static void _s_game_loop(SState *s, double dt) {
     if (s_ws_two_paddles_connected(s)) {
-        s->ball->vel[0] += s->ball->vel[0] * 0.125*dt;
-        s->ball->vel[1] += s->ball->vel[1] * 0.125*dt;
-        s->ball->vel[2] += s->ball->vel[2] * 0.125*dt;
+        s->ball->vel[0] += s->ball->curve[0] * BALL_CURVE_INCREASE_FACTOR * dt;
+        s->ball->vel[1] += s->ball->curve[1] * BALL_CURVE_INCREASE_FACTOR * dt;
+        s->ball->vel[2] += s->ball->vel[2] * BALL_ZVEL_INCREASE_FACTOR * dt;
         s->ball->pos[0] += s->ball->vel[0]*dt;
         bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
         bool right = s->ball->pos[0] - BALL_RADIUS < -ARENA_WIDTH / 2.0;
@@ -79,6 +75,16 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
+                float p1_vel[2] = {
+                    (s->p1->pos_prev[0] - s->p1->pos[0]) / s->p1->pos_prev_dt,
+                    (s->p1->pos_prev[1] - s->p1->pos[1]) / s->p1->pos_prev_dt,
+                };
+                printf("p1 curve (%f, %f)\n", p1_vel[0], p1_vel[1]);
+                float curve[2] = {
+                    s->ball->curve[0] - p1_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] - p1_vel[1] * BALL_CURVE_FACTOR
+                };
+                memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
@@ -89,6 +95,16 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
+                float p2_vel[2] = {
+                    (s->p2->pos_prev[0] - s->p2->pos[0]) / s->p2->pos_prev_dt,
+                    (s->p2->pos_prev[1] - s->p2->pos[1]) / s->p2->pos_prev_dt,
+                };
+                printf("p2 vel (%f, %f)\n", p2_vel[0], p2_vel[1]);
+                float curve[2] = {
+                    s->ball->curve[0] + p2_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] + p2_vel[1] * BALL_CURVE_FACTOR
+                };
+                memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {

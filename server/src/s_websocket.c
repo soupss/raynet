@@ -1,6 +1,10 @@
 #include <libwebsockets.h>
+#include <time.h>
 #include "s_websocket.h"
 #include "shared_constants.h"
+
+static long long p1_pos_prev_t = 0;
+static long long p2_pos_prev_t = 0;
 
 void s_ws_send_ball_state(SState *s) {
     int payload_size = sizeof(MESSAGE_TYPE) + 3 * sizeof(float);
@@ -111,13 +115,31 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             }
             break;
         case LWS_CALLBACK_RECEIVE:
-            if (wsi == state->p1->wsi) {
-                memcpy(state->p1->pos, in, 2 * sizeof(float));
-                _s_ws_send_paddle_positions(state);
-            }
-            else if (wsi == state->p2->wsi) {
-                memcpy(state->p2->pos, in, 2 * sizeof(float));
-                _s_ws_send_paddle_positions(state);
+            {
+                if (wsi == state->p1->wsi) {
+                    memcpy(state->p1->pos_prev, state->p1->pos, 2 * sizeof(float));
+                    struct timeval tv;
+                    gettimeofday(&tv, NULL);
+                    long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
+                    if (p1_pos_prev_t != 0) {
+                        state->p1->pos_prev_dt = t - p1_pos_prev_t;
+                    }
+                    p1_pos_prev_t = t;
+                    memcpy(state->p1->pos, in, 2 * sizeof(float));
+                    _s_ws_send_paddle_positions(state);
+                }
+                else if (wsi == state->p2->wsi) {
+                    memcpy(state->p2->pos_prev, state->p2->pos, 2 * sizeof(float));
+                    struct timeval tv;
+                    gettimeofday(&tv, NULL);
+                    long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
+                    if (p2_pos_prev_t != 0) {
+                        state->p2->pos_prev_dt = t - p2_pos_prev_t;
+                    }
+                    p2_pos_prev_t = t;
+                    memcpy(state->p2->pos, in, 2 * sizeof(float));
+                    _s_ws_send_paddle_positions(state);
+                }
             }
             break;
         default:

@@ -4,7 +4,7 @@
 #define SERVER_HOSTNAME "localhost"
 #define WEBSOCKET_OPEN 1
 
-#define FPS 0
+#define FPS 120
 #define CAMERA_DISTANCE 90
 #define CAMERA_FOV 90
 #define BALL_DETAIL 6
@@ -13,5 +13,7 @@
 #define PADDLE_FADE_SPEED 0.05
 #define PADDLE_1_COLOR GREEN
 #define PADDLE_2_COLOR RED
+#define BALL_COLOR RAYWHITE
+#define ARENA_COLOR RAYWHITE
 
 #endif

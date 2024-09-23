@@ -2,6 +2,7 @@
 #include <rlgl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <emscripten/websocket.h>
 #include "c_websocket.h"
 #include "c_state.h"
@@ -35,12 +36,12 @@ static void _c_update(CState *s) {
     }
     c_ws_send_paddle_state(s->socket, pos);
     if (s->side == SIDE_1) {
-        s->paddle1.x = pos[0];
-        s->paddle1.y = pos[1];
+        s->paddle1->pos.x = pos[0];
+        s->paddle1->pos.y = pos[1];
     }
     else if (s->side == SIDE_2) {
-        s->paddle2.x = pos[0];
-        s->paddle2.y = pos[1];
+        s->paddle2->pos.x = pos[0];
+        s->paddle2->pos.y = pos[1];
     }
 }
 
@@ -51,28 +52,28 @@ static void _c_draw(CState *s) {
     BeginMode3D(s->camera);
     rlDisableDepthMask(); // for transparency
     BeginBlendMode(BLEND_ALPHA);
-    if (s->p1_alpha > 0) {
-        DrawCubeV(s->paddle1, paddle_size, Fade(PADDLE_1_COLOR, s->p1_alpha));
-        s->p1_alpha -= PADDLE_FADE_SPEED;
-        if (s->p1_alpha < 0) { s->p1_alpha = 0.0; }
+    if (s->paddle1->alpha > 0) {
+        DrawCubeV(s->paddle1->pos, paddle_size, Fade(PADDLE_1_COLOR, s->paddle1->alpha));
+        s->paddle1->alpha -= PADDLE_FADE_SPEED;
+        if (s->paddle1->alpha < 0) { s->paddle1->alpha = 0.0; }
     }
-    else if (s->p2_alpha > 0) {
-        DrawCubeV(s->paddle2, paddle_size, Fade(PADDLE_2_COLOR, s->p2_alpha));
-        s->p2_alpha -= PADDLE_FADE_SPEED;
-        if (s->p2_alpha < 0) { s->p2_alpha = 0.0; }
+    else if (s->paddle2->alpha > 0) {
+        DrawCubeV(s->paddle2->pos, paddle_size, Fade(PADDLE_2_COLOR, s->paddle2->alpha));
+        s->paddle2->alpha -= PADDLE_FADE_SPEED;
+        if (s->paddle2->alpha < 0) { s->paddle2->alpha = 0.0; }
     }
-    DrawCubeWiresV(s->paddle1, paddle_size, PADDLE_1_COLOR);
-    DrawCubeWiresV(s->paddle2, paddle_size, PADDLE_2_COLOR);
-    DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, WHITE);
+    DrawCubeWiresV(s->paddle1->pos, paddle_size, PADDLE_1_COLOR);
+    DrawCubeWiresV(s->paddle2->pos, paddle_size, PADDLE_2_COLOR);
+    DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, BALL_COLOR);
     float tracker_z = s->ball.z * (ARENA_LENGTH / (float)(ARENA_LENGTH - BALL_RADIUS * 2));
     Vector3 tracker_pos = { 0, 0, tracker_z };
     Vector3 tracker_size = { ARENA_WIDTH, ARENA_HEIGHT, 0 };
-    DrawCubeWiresV(tracker_pos, tracker_size, WHITE);
+    DrawCubeWiresV(tracker_pos, tracker_size, BALL_COLOR);
     float slice_length = ARENA_LENGTH / (float)ARENA_SLICES;
     Vector3 slice_pos = { 0, 0, PADDLE_SPACING - slice_length/2.0 };
     Vector3 slice_size = { ARENA_WIDTH, ARENA_HEIGHT, slice_length };
     for (int i = 0; i < 8; i++) {
-        DrawCubeWiresV(slice_pos, slice_size, GREEN);
+        DrawCubeWiresV(slice_pos, slice_size, ARENA_COLOR);
         slice_pos.z -= slice_length;
     }
     EndMode3D();
@@ -86,7 +87,7 @@ static void _c_loop(void *arg) {
 }
 
 int main() {
-    InitWindow(1, 1, "hlkjlkjj");
+    InitWindow(1, 1, "3D Pong");
     float width = GetMonitorWidth(GetCurrentMonitor()) * 0.8;
     float height = width * 0.7;
     SetWindowSize(width, height);

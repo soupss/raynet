@@ -5,12 +5,16 @@
 #include <emscripten/websocket.h>
 #include "shared_constants.h"
 
+typedef struct CPaddle {
+    Vector3 pos;
+    Vector2 vel;
+    float alpha;
+} CPaddle;
+
 typedef struct CState {
     PADDLE_SIDE side;
-    Vector3 paddle1;
-    Vector3 paddle2;
-    float p1_alpha;
-    float p2_alpha;
+    CPaddle *paddle1;
+    CPaddle *paddle2;
     Vector3 ball;
     Camera3D camera;
     EMSCRIPTEN_WEBSOCKET_T socket;
