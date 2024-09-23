@@ -4,6 +4,21 @@
 #include "c_constants.h"
 #include "shared_constants.h"
 
+
+void c_ws_send_player_state(EMSCRIPTEN_WEBSOCKET_T ws, float pos[2]) {
+    unsigned short ready_state = 0;
+    emscripten_websocket_get_ready_state(ws, &ready_state);
+    if (ready_state == WEBSOCKET_OPEN) {
+        EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(ws, pos, 2 * sizeof(float));
+        if (result != EMSCRIPTEN_RESULT_SUCCESS) {
+            printf("Send state fail\n");
+        }
+    }
+    else {
+        printf("WebSocket not open\n");
+    }
+}
+
 static EM_BOOL _on_open(int event_type, const EmscriptenWebSocketOpenEvent *e, void *user_data) {
     printf("Websocket open\n");
     return EM_TRUE;
@@ -20,30 +35,44 @@ static EM_BOOL _on_error(int event_type, const EmscriptenWebSocketErrorEvent *e,
 }
 
 static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent *e, void *user_data) {
-    CState *state = (CState *)user_data;
-    unsigned char type = ((unsigned char *)e->data)[0];
-    void *data = &((unsigned char *)e->data)[1];
-    switch (type) {
-        case SEND_PADDLE_PLAYER_1:
-            if (state->side == SIDE_1) break;
-            state->player1.x = ((float *) data)[0];
-            state->player1.y = ((float *) data)[1];
+    CState *s = (CState *)user_data;
+    MESSAGE_TYPE msg_type;
+    memcpy(&msg_type, e->data, sizeof(MESSAGE_TYPE));
+    unsigned char *payload = (unsigned char *)e->data + sizeof(MESSAGE_TYPE);
+    memcpy(payload, e->data + sizeof(MESSAGE_TYPE), e->numBytes - sizeof(MESSAGE_TYPE));
+    switch (msg_type) {
+        case MSG_TYPE_SEND_PADDLE:;
+            {
+                PLAYER_SIDE side;
+                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                float pos[2];
+                memcpy(&pos, payload + sizeof(PLAYER_SIDE), 2 * sizeof(float));
+                if (side == SIDE_1) {
+                    s->player1.x = pos[0];
+                    s->player1.y = pos[1];
+                }
+                if (side == SIDE_2) {
+                    s->player2.x = pos[0];
+                    s->player2.y = pos[1];
+                }
+            }
             break;
-        case SEND_PADDLE_PLAYER_2:
-            if (state->side == SIDE_2) break;
-            state->player2.x = ((float *) data)[0];
-            state->player2.y = ((float *) data)[1];
+        case MSG_TYPE_SEND_BALL:
+            memcpy(&s->ball, payload, 3*sizeof(float));
             break;
-        case SEND_BALL:
-            memcpy(&state->ball, data, 3*sizeof(float));
-            break;
-        case ASSIGN_SIDE_1:
-            state->camera.position.z = CAMERA_DISTANCE;
-            state->side = SIDE_1;
-            break;
-        case ASSIGN_SIDE_2:
-            state->camera.position.z = -CAMERA_DISTANCE;
-            state->side = SIDE_2;
+        case MSG_TYPE_ASSIGN_SIDE:;
+            {
+                PLAYER_SIDE side;
+                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                if (side == SIDE_1) {
+                    s->camera.position.z = CAMERA_DISTANCE;
+                    s->side = SIDE_1;
+                }
+                else if (side == SIDE_2) {
+                    s->camera.position.z = -CAMERA_DISTANCE;
+                    s->side = SIDE_2;
+                }
+            }
             break;
         default:
             return EM_TRUE;
@@ -71,18 +100,4 @@ EMSCRIPTEN_WEBSOCKET_T c_ws_init(CState *state) {
     emscripten_websocket_set_onclose_callback(ws, state, _on_close);
     emscripten_websocket_set_onmessage_callback(ws, state, _on_message);
     return ws;
-}
-
-void c_ws_send_player_state(EMSCRIPTEN_WEBSOCKET_T ws, float pos[2]) {
-    unsigned short ready_state = 0;
-    emscripten_websocket_get_ready_state(ws, &ready_state);
-    if (ready_state == WEBSOCKET_OPEN) {
-        EMSCRIPTEN_RESULT result = emscripten_websocket_send_binary(ws, pos, 2 * sizeof(float));
-        if (result != EMSCRIPTEN_RESULT_SUCCESS) {
-            printf("Send state fail\n");
-        }
-    }
-    else {
-        printf("WebSocket not open\n");
-    }
 }

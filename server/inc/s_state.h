@@ -8,6 +8,7 @@ typedef struct SPlayer {
 
 typedef struct SBall {
     float pos[3];
+    //TODO:velocity
     float speed[3];
     float rotation[3];
 } SBall;

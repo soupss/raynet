@@ -4,9 +4,9 @@
 
 CState *c_state_create() {
     CState *s = malloc(sizeof(CState));
-    s->player1 = (Vector3){ 0, 0, PADDLE_SPACING };
-    s->player2 = (Vector3){ 0, 0, -PADDLE_SPACING };
-    s->ball = (Vector3){ 0, 0, 0 }; //offscreen
+    s->player1 = (Vector3){ 10000, 0, PADDLE_SPACING };
+    s->player2 = (Vector3){ 10000, 0, -PADDLE_SPACING };
+    s->ball = (Vector3){ 10000, 0, 0 }; //offscreen
     s->camera = (Camera3D){ 0 };
     s->camera.position = (Vector3){ 0, 0, CAMERA_DISTANCE };
     s->camera.target = (Vector3){ 0, 0, 0 };

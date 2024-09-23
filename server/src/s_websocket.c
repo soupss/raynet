@@ -2,47 +2,69 @@
 #include "s_websocket.h"
 #include "shared_constants.h"
 
-void s_ws_send_ball_state(SState * state) {
-    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {
-        return;
+bool s_ws_two_players_connected(SState *s) {
+    return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
+}
+
+void s_ws_send_ball_state(SState *s) {
+    if (!s_ws_two_players_connected(s)) { return; }
+    int payload_size = sizeof(MESSAGE_TYPE) + 3 * sizeof(float);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_SEND_BALL;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], s->ball->pos, 3 * sizeof(float));
+    if (s->p1->wsi != NULL) {
+        lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
-    int payload_size = 3 * sizeof(float);
-    unsigned char buffer[LWS_PRE + 1 + payload_size];
-    buffer[LWS_PRE] = SEND_BALL;
-    memcpy(&buffer[LWS_PRE + 1], state->ball->pos, payload_size);
-    if (state->p1->wsi != NULL) {
-        lws_write(state->p1->wsi, &buffer[LWS_PRE], 1 + payload_size, LWS_WRITE_BINARY);
-    }
-    if (state->p2->wsi != NULL) {
-        lws_write(state->p2->wsi, &buffer[LWS_PRE], 1 + payload_size, LWS_WRITE_BINARY);
+    if (s->p2->wsi != NULL) {
+        lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
 }
 
-static void _s_ws_send_paddle_position(SState * state, float * pos, unsigned char player) {
-    int payload_size = 2 * sizeof(float);
-    unsigned char buffer[LWS_PRE + 1 + payload_size];
-    buffer[LWS_PRE] = player;
-    memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
-    //TODO: one nullcheck
-    if (state->p1->wsi != NULL) {
-        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+// void s_ws_send_player_disconnected(SState *state, struct lws *player) {
+//     int payload_size = sizeof(PLAYER_SIDE);
+//     unsigned char buffer[LWS_PRE + 1 + payload_size];
+//     buffer[LWS_PRE] = player;
+//     memcpy(&buffer[LWS_PRE + 1], pos, payload_size);
+//     if (state->p1->wsi != NULL) {
+//         lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+//     }
+//     if (state->p2->wsi != NULL) {
+//         lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+//     }
+// }
+
+static void _s_ws_send_paddle_position(SState *state, float *pos, PLAYER_SIDE side) {
+    bool p1_connected = state->p1->wsi != NULL;
+    bool p2_connected = state->p2->wsi != NULL;
+    if (side == SIDE_1 && !p1_connected) { return; }
+    if (side == SIDE_2 && !p2_connected) { return; }
+    int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE) + 2 * sizeof(float);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_SEND_PADDLE;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PLAYER_SIDE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE)], pos, 2 * sizeof(float));
+    if (p1_connected) {
+        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
-    if (state->p2->wsi != NULL) {
-        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size + 1, LWS_WRITE_BINARY);
+    if (p2_connected) {
+        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
 }
 
-static void _s_ws_send_paddle_positions(SState * state) {
-    //TODO: one nullcheck
-    if (state->p1->wsi == NULL && state->p2->wsi == NULL) {return;}
-    _s_ws_send_paddle_position(state, state->p1->pos, SEND_PADDLE_PLAYER_1);
-    _s_ws_send_paddle_position(state, state->p2->pos, SEND_PADDLE_PLAYER_2);
+static void _s_ws_send_paddle_positions(SState * s) {
+    _s_ws_send_paddle_position(s, s->p1->pos, SIDE_1);
+    _s_ws_send_paddle_position(s, s->p2->pos, SIDE_2);
 }
 
-static void _s_ws_send_assign_side(struct lws *recipient_wsi, unsigned char role) {
-    unsigned char buffer[LWS_PRE + 1];
-    buffer[LWS_PRE] = role;
-    lws_write(recipient_wsi, &buffer[LWS_PRE], 1, LWS_WRITE_BINARY);
+static void _s_ws_send_assign_side(struct lws *recipient_wsi, PLAYER_SIDE side) {
+    int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_ASSIGN_SIDE;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PLAYER_SIDE));
+    lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
@@ -51,15 +73,16 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         case LWS_CALLBACK_ESTABLISHED:
             if (state->p1->wsi == NULL) {
                 state->p1->wsi = wsi;
-                _s_ws_send_assign_side(wsi, ASSIGN_SIDE_1);
+                _s_ws_send_assign_side(wsi, SIDE_1);
                 printf("Player 1 connect\n");
             }
             else if (state->p2->wsi == NULL) {
                 state->p2->wsi = wsi;
-                _s_ws_send_assign_side(wsi, ASSIGN_SIDE_2);
+                _s_ws_send_assign_side(wsi, SIDE_2);
                 printf("Player 2 connect\n");
             }
             else {
+                // TODO:spectators
                 printf("Game full");
                 return -1; // close connection
             }

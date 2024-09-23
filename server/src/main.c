@@ -2,11 +2,14 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
+#include <stdbool.h>
 #include "s_state.h"
 #include "s_websocket.h"
 #include "s_constants.h"
 #include "shared_constants.h"
+#include "shared_functions.h"
 
 static int interrupted = 0;
 
@@ -14,15 +17,8 @@ static void _s_signal_handler() {
     interrupted = 1;
 }
 
-static void _s_thread_service_loop(struct lws_context *context) {
-    while(!interrupted) {
-        lws_service(context, 1000);
-    }
-    lws_context_destroy(context);
-}
-
-static float distance(float x1, float y1, float x2, float y2) {
-    return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)); 
+static int _s_rng(int upper, int lower) {
+    return (rand() % (upper - lower + 1)) + lower;
 }
 
 static void _s_reset_ball(SState * state) {
@@ -30,9 +26,9 @@ static void _s_reset_ball(SState * state) {
     state->ball->pos[1] = 0;
     state->ball->pos[2] = 0;
 
-    state->ball->speed[0] = 13;
-    state->ball->speed[1] = 15;
-    state->ball->speed[2] = 41;
+    state->ball->speed[0] = _s_rng(1, 5);
+    state->ball->speed[1] = _s_rng(1, 5);
+    state->ball->speed[2] = 10 * ((rand() % 2) ? 1 : -1);
 }
 
 static unsigned char _s_ball_hits_paddle(SState * state) {
@@ -49,53 +45,62 @@ static unsigned char _s_ball_hits_paddle(SState * state) {
 
     unsigned char case1 = is_horizontally_between_edges && is_vertically_between_extended_edges;
     unsigned char case2 = is_vertically_between_edges && is_horizontally_between_extended_edges;
-    unsigned char case3 = distance(bx,by,px + PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case4 = distance(bx,by,px - PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case5 = distance(bx,by,px + PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
-    unsigned char case6 = distance(bx,by,px - PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case3 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case4 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2,py + PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case5 = shared_get_distance(bx,by,px + PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
+    unsigned char case6 = shared_get_distance(bx,by,px - PADDLE_WIDTH/2,py - PADDLE_HEIGHT/2) < BALL_RADIUS;
 
     return case1 || case2 || case3 || case4 || case5 || case6 ;
 }
 
-static void _s_game_loop(SState *state, double dt) {
-    state->ball->speed[0] += state->ball->speed[0] * 0.125*dt;
-    state->ball->speed[1] += state->ball->speed[1] * 0.125*dt;
-    state->ball->speed[2] += state->ball->speed[2] * 0.125*dt;
-
-    state->ball->pos[0] += state->ball->speed[0]*dt;
-    if (state->ball->pos[0] > ARENA_WIDTH / 2.0 || state->ball->pos[0] < -ARENA_WIDTH / 2.0) {
-        state->ball->pos[0] -= state->ball->speed[0]*dt;
-        state->ball->speed[0] *= -1;
-    }
-    state->ball->pos[1] += state->ball->speed[1]*dt;
-    if (state->ball->pos[1] > ARENA_HEIGHT / 2.0 || state->ball->pos[1] < -ARENA_HEIGHT / 2.0) {
-        state->ball->pos[1] -= state->ball->speed[1]*dt;
-        state->ball->speed[1] *= -1;
-    }
-    state->ball->pos[2] += state->ball->speed[2]*dt;
-    if (state->ball->pos[2] > ARENA_LENGTH / 2.0 || state->ball->pos[2] < -ARENA_LENGTH / 2.0) {
-            printf("FLIPPING! \n");
-        if (_s_ball_hits_paddle(state)) {
-            state->ball->pos[2] -= state->ball->speed[2]*dt;
-            state->ball->speed[2] *= -1;
-            printf("HIT! \n");
+static void _s_game_loop(SState *s, double dt) {
+    if (s_ws_two_players_connected(s)) {
+        s->ball->speed[0] += s->ball->speed[0] * 0.125*dt;
+        s->ball->speed[1] += s->ball->speed[1] * 0.125*dt;
+        s->ball->speed[2] += s->ball->speed[2] * 0.125*dt;
+        s->ball->pos[0] += s->ball->speed[0]*dt;
+        bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
+        bool right = s->ball->pos[0] - BALL_RADIUS < -ARENA_WIDTH / 2.0;
+        if (left || right) {
+            s->ball->pos[0] -= s->ball->speed[0]*dt;
+            s->ball->speed[0] *= -1;
         }
-        else {
-            _s_reset_ball(state);
+        s->ball->pos[1] += s->ball->speed[1]*dt;
+        bool top = s->ball->pos[1] + BALL_RADIUS > ARENA_HEIGHT / 2.0;
+        bool bottom = s->ball->pos[1] - BALL_RADIUS < -ARENA_HEIGHT / 2.0;
+        if (top || bottom) {
+            s->ball->pos[1] -= s->ball->speed[1]*dt;
+            s->ball->speed[1] *= -1;
         }
-
+        s->ball->pos[2] += s->ball->speed[2]*dt;
+        bool player_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
+        bool player_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
+        if (player_1_side || player_2_side) {
+            if (_s_ball_hits_paddle(s)) {
+                s->ball->pos[2] -= s->ball->speed[2]*dt;
+                s->ball->speed[2] *= -1;
+            }
+            else {
+                _s_reset_ball(s);
+            }
+        }
     }
 }
 
+static void _s_thread_service_loop(struct lws_context *context) {
+    while(!interrupted) {
+        lws_service(context, 1000);
+    }
+    lws_context_destroy(context);
+}
+
 int main() {
+    srand(time(NULL));
     signal(SIGINT, _s_signal_handler);
     struct lws_context *context = s_ws_create_context();
     SState *state = lws_context_user(context);
     _s_reset_ball(state);
 
-
-    //Spawn thread that handles requests
-    //Frees up main thread to handle game loop
     pthread_t *t = malloc(sizeof(pthread_t));
     pthread_create(t, NULL, (void * _Nullable (* _Nonnull)(void * _Nullable)) &_s_thread_service_loop, context);
 
@@ -104,7 +109,6 @@ int main() {
     double accumulated_time = 0;
     while (!interrupted)
     {
-        /// Calculate delta time
         time_t previous_sec = t1.tv_sec;
         suseconds_t previous_usec = t1.tv_usec;
         gettimeofday(&t1, NULL);

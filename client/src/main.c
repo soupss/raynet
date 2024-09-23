@@ -18,7 +18,6 @@ static void _c_update(CState *s) {
                     mouse.position.y + mouse.direction.y * d};
     float x_min = -ARENA_WIDTH / 2.0 + PADDLE_WIDTH / 2.0;
     float x_max = ARENA_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
-    // contain paddle
     if (pos[0] < x_min) {
         pos[0] = x_min;
     }
@@ -49,9 +48,13 @@ static void _c_draw(CState *s) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
-    DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, DARKGREEN);
     DrawCubeWiresV(s->player1, paddle_size, GREEN);
     DrawCubeWiresV(s->player2, paddle_size, RED);
+    DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, WHITE);
+    float tracker_z = s->ball.z * (ARENA_LENGTH / (float)(ARENA_LENGTH - BALL_RADIUS * 2));
+    Vector3 tracker_pos = { 0, 0, tracker_z };
+    Vector3 tracker_size = { ARENA_WIDTH, ARENA_HEIGHT, 0 };
+    DrawCubeWiresV(tracker_pos, tracker_size, WHITE);
     float slice_length = ARENA_LENGTH / (float)ARENA_SLICES;
     Vector3 slice_pos = { 0, 0, PADDLE_SPACING - slice_length/2.0 };
     Vector3 slice_size = { ARENA_WIDTH, ARENA_HEIGHT, slice_length };
@@ -59,9 +62,6 @@ static void _c_draw(CState *s) {
         DrawCubeWiresV(slice_pos, slice_size, GREEN);
         slice_pos.z -= slice_length;
     }
-    Vector3 tracker_pos = { 0, 0, s->ball.z };
-    Vector3 tracker_size = { ARENA_WIDTH, ARENA_HEIGHT, 0 };
-    DrawCubeWiresV(tracker_pos, tracker_size, BLUE);
     EndMode3D();
     EndDrawing();
 }
@@ -74,8 +74,8 @@ static void _c_loop(void *arg) {
 
 int main() {
     InitWindow(1, 1, "hlkjlkjj");
-    float width = GetMonitorWidth(GetCurrentMonitor()) * 0.9;
-    float height = width * 0.6;
+    float width = GetMonitorWidth(GetCurrentMonitor()) * 0.8;
+    float height = width * 0.7;
     SetWindowSize(width, height);
     CState *s = c_state_create();
     EMSCRIPTEN_WEBSOCKET_T ws = c_ws_init(s);

@@ -2,9 +2,11 @@
 #define S_WEBSOCKET_H
 
 #include <libwebsockets.h>
+#include <stdbool.h>
 #include "s_state.h"
 
 struct lws_context *s_ws_create_context();
 void s_ws_send_ball_state(SState* state);
+bool s_ws_two_players_connected(SState *state);
 
 #endif
