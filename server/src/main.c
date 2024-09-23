@@ -31,7 +31,7 @@ static void _s_reset_ball(SState * state) {
     state->ball->speed[2] = 10 * ((rand() % 2) ? 1 : -1);
 }
 
-static unsigned char _s_ball_hits_paddle(SState * state) {
+bool _s_paddle_hit_ball(SState * state) {
     SPlayer * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
     float bx = state->ball->pos[0];
     float by = state->ball->pos[1];
@@ -75,10 +75,21 @@ static void _s_game_loop(SState *s, double dt) {
         s->ball->pos[2] += s->ball->speed[2]*dt;
         bool player_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
         bool player_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
-        if (player_1_side || player_2_side) {
-            if (_s_ball_hits_paddle(s)) {
+        if (player_1_side) {
+            if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->speed[2]*dt;
                 s->ball->speed[2] *= -1;
+                s_ws_send_paddle_hit_ball(s, SIDE_1);
+            }
+            else {
+                _s_reset_ball(s);
+            }
+        }
+        else if (player_2_side) {
+            if (_s_paddle_hit_ball(s)) {
+                s->ball->pos[2] -= s->ball->speed[2]*dt;
+                s->ball->speed[2] *= -1;
+                s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
                 _s_reset_ball(s);

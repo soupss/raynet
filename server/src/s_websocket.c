@@ -2,35 +2,6 @@
 #include "s_websocket.h"
 #include "shared_constants.h"
 
-bool s_ws_two_players_connected(SState *s) {
-    return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
-}
-
-//TODO: make function that creates message
-static void _s_ws_send_paddle_position(SState *state, float *pos, PLAYER_SIDE side) {
-    bool p1_connected = state->p1->wsi != NULL;
-    bool p2_connected = state->p2->wsi != NULL;
-    if (side == SIDE_1 && !p1_connected) { return; }
-    if (side == SIDE_2 && !p2_connected) { return; }
-    int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE) + 2 * sizeof(float);
-    unsigned char buffer[LWS_PRE + payload_size];
-    MESSAGE_TYPE m = MSG_TYPE_SEND_PADDLE;
-    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
-    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PLAYER_SIDE));
-    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE)], pos, 2 * sizeof(float));
-    if (p1_connected) {
-        lws_write(state->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
-    }
-    if (p2_connected) {
-        lws_write(state->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
-    }
-}
-
-static void _s_ws_send_paddle_positions(SState * s) {
-    _s_ws_send_paddle_position(s, s->p1->pos, SIDE_1);
-    _s_ws_send_paddle_position(s, s->p2->pos, SIDE_2);
-}
-
 void s_ws_send_ball_state(SState *s) {
     int payload_size = sizeof(MESSAGE_TYPE) + 3 * sizeof(float);
     unsigned char buffer[LWS_PRE + payload_size];
@@ -43,6 +14,49 @@ void s_ws_send_ball_state(SState *s) {
     if (s->p2->wsi != NULL) {
         lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
+}
+
+void s_ws_send_paddle_hit_ball(SState *s, PLAYER_SIDE side) {
+    int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_PADDLE_HIT_BALL;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PLAYER_SIDE));
+    if (s->p1->wsi != NULL) {
+        lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+    else if (s->p2->wsi != NULL) {
+        lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+}
+
+bool s_ws_two_players_connected(SState *s) {
+    return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
+}
+
+//TODO: make function that creates message
+static void _s_ws_send_paddle_position(SState *s, float *pos, PLAYER_SIDE side) {
+    bool p1_connected = s->p1->wsi != NULL;
+    bool p2_connected = s->p2->wsi != NULL;
+    if (side == SIDE_1 && !p1_connected) { return; }
+    if (side == SIDE_2 && !p2_connected) { return; }
+    int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE) + 2 * sizeof(float);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_SEND_PADDLE;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PLAYER_SIDE));
+    memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE) + sizeof(PLAYER_SIDE)], pos, 2 * sizeof(float));
+    if (p1_connected) {
+        lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+    if (p2_connected) {
+        lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+}
+
+static void _s_ws_send_paddle_positions(SState * s) {
+    _s_ws_send_paddle_position(s, s->p1->pos, SIDE_1);
+    _s_ws_send_paddle_position(s, s->p2->pos, SIDE_2);
 }
 
 static void _s_ws_send_assign_side(struct lws *recipient_wsi, PLAYER_SIDE side) {

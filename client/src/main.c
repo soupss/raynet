@@ -48,8 +48,18 @@ static void _c_draw(CState *s) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
-    DrawCubeWiresV(s->player1, paddle_size, GREEN);
-    DrawCubeWiresV(s->player2, paddle_size, RED);
+    if (s->p1_alpha > 0) {
+        DrawCubeV(s->player1, paddle_size, Fade(PADDLE_1_COLOR, s->p1_alpha));
+        s->p1_alpha -= PADDLE_FADE_SPEED;
+        if (s->p1_alpha < 0) { s->p1_alpha = 0.0; }
+    }
+    else if (s->p2_alpha > 0) {
+        DrawCubeV(s->player2, paddle_size, Fade(PADDLE_2_COLOR, s->p2_alpha));
+        s->p2_alpha -= PADDLE_FADE_SPEED;
+        if (s->p2_alpha < 0) { s->p2_alpha = 0.0; }
+    }
+    DrawCubeWiresV(s->player1, paddle_size, PADDLE_1_COLOR);
+    DrawCubeWiresV(s->player2, paddle_size, PADDLE_2_COLOR);
     DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, WHITE);
     float tracker_z = s->ball.z * (ARENA_LENGTH / (float)(ARENA_LENGTH - BALL_RADIUS * 2));
     Vector3 tracker_pos = { 0, 0, tracker_z };

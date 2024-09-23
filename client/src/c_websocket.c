@@ -60,6 +60,18 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
         case MSG_TYPE_SEND_BALL:
             memcpy(&s->ball, payload, 3*sizeof(float));
             break;
+        case MSG_TYPE_PADDLE_HIT_BALL:
+            {
+                PLAYER_SIDE side;
+                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                if (side == SIDE_1) {
+                    s->p1_alpha = 1.0;
+                }
+                else if (side == SIDE_2) {
+                    s->p2_alpha = 1.0;
+                }
+            }
+            break;
         case MSG_TYPE_ASSIGN_SIDE:
             {
                 PLAYER_SIDE side;
