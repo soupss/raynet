@@ -73,7 +73,8 @@ static void _s_ws_send_assign_side(struct lws *recipient_wsi, PADDLE_SIDE side) 
     lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
-static void _s_ws_send_paddle_disconnect(SState *state, struct lws *recipient_wsi, PADDLE_SIDE dc_side) {
+static void _s_ws_send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE dc_side) {
+    if (recipient_wsi == NULL) {return;}
     int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PADDLE_SIDE);
     unsigned char buffer[LWS_PRE + payload_size];
     MESSAGE_TYPE m = MSG_TYPE_PADDLE_DISCONNECT;
@@ -106,12 +107,12 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             if (wsi == state->p1->wsi) {
                 state->p1->wsi = NULL;
                 printf("paddle 1 disconnect\n");
-                _s_ws_send_paddle_disconnect(state, state->p2->wsi, SIDE_1);
+                _s_ws_send_paddle_disconnect(state->p2->wsi, SIDE_1);
             }
             else if (wsi == state->p2->wsi) {
                 state->p2->wsi = NULL;
                 printf("paddle 2 disconnect\n");
-                _s_ws_send_paddle_disconnect(state, state->p1->wsi, SIDE_2);
+                _s_ws_send_paddle_disconnect(state->p1->wsi, SIDE_2);
             }
             break;
         case LWS_CALLBACK_RECEIVE:
