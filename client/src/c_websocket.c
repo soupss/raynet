@@ -41,7 +41,7 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
     unsigned char *payload = (unsigned char *)e->data + sizeof(MESSAGE_TYPE);
     memcpy(payload, e->data + sizeof(MESSAGE_TYPE), e->numBytes - sizeof(MESSAGE_TYPE));
     switch (msg_type) {
-        case MSG_TYPE_SEND_PADDLE:;
+        case MSG_TYPE_SEND_PADDLE:
             {
                 PLAYER_SIDE side;
                 memcpy(&side, payload, sizeof(PLAYER_SIDE));
@@ -60,7 +60,7 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
         case MSG_TYPE_SEND_BALL:
             memcpy(&s->ball, payload, 3*sizeof(float));
             break;
-        case MSG_TYPE_ASSIGN_SIDE:;
+        case MSG_TYPE_ASSIGN_SIDE:
             {
                 PLAYER_SIDE side;
                 memcpy(&side, payload, sizeof(PLAYER_SIDE));
@@ -71,6 +71,18 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 else if (side == SIDE_2) {
                     s->camera.position.z = -CAMERA_DISTANCE;
                     s->side = SIDE_2;
+                }
+            }
+            break;
+        case MSG_TYPE_PLAYER_DISCONNECT:
+            {
+                PLAYER_SIDE side;
+                memcpy(&side, payload, sizeof(PLAYER_SIDE));
+                if (side == SIDE_1) {
+                    s->player1.x = OUT_OF_BOUNDS;
+                }
+                else if (side == SIDE_2) {
+                    s->player2.x = OUT_OF_BOUNDS;
                 }
             }
             break;
