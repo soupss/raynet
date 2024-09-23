@@ -1,10 +1,12 @@
 #include <libwebsockets.h>
 #include <time.h>
 #include "s_websocket.h"
+#include "s_constants.h"
 #include "shared_constants.h"
+#include "queue.h"
 
-static long long p1_pos_prev_t = 0;
-static long long p2_pos_prev_t = 0;
+static long long _p1_pos_prev_t = 0;
+static long long _p2_pos_prev_t = 0;
 
 void s_ws_send_ball_state(SState *s) {
     int payload_size = sizeof(MESSAGE_TYPE) + 3 * sizeof(float);
@@ -34,11 +36,6 @@ void s_ws_send_paddle_hit_ball(SState *s, PADDLE_SIDE side) {
     }
 }
 
-bool s_ws_two_paddles_connected(SState *s) {
-    return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
-}
-
-//TODO: make function that creates message
 static void _s_ws_send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) {
     bool p1_connected = s->p1->wsi != NULL;
     bool p2_connected = s->p2->wsi != NULL;
@@ -58,7 +55,6 @@ static void _s_ws_send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) 
     }
 }
 
-// change name to broadcast ?
 static void _s_ws_send_paddle_positions(SState * s) {
     _s_ws_send_paddle_position(s, s->p1->pos, SIDE_1);
     _s_ws_send_paddle_position(s, s->p2->pos, SIDE_2);
@@ -83,6 +79,9 @@ static void _s_ws_send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE 
     lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
+void _s_ws_calculate_ball_curve() {
+}
+
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
     SState *state = lws_context_user(lws_get_context(wsi));
     switch(reason) {
@@ -103,18 +102,20 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                 return -1; // close connection
             }
             break;
+
         case LWS_CALLBACK_CLOSED:
             if (wsi == state->p1->wsi) {
                 state->p1->wsi = NULL;
-                printf("paddle 1 disconnect\n");
                 _s_ws_send_paddle_disconnect(state->p2->wsi, SIDE_1);
+                printf("paddle 1 disconnect\n");
             }
             else if (wsi == state->p2->wsi) {
                 state->p2->wsi = NULL;
-                printf("paddle 2 disconnect\n");
                 _s_ws_send_paddle_disconnect(state->p1->wsi, SIDE_2);
+                printf("paddle 2 disconnect\n");
             }
             break;
+
         case LWS_CALLBACK_RECEIVE:
             {
                 if (wsi == state->p1->wsi) {
@@ -122,10 +123,10 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
-                    if (p1_pos_prev_t != 0) {
-                        state->p1->pos_prev_dt = t - p1_pos_prev_t;
+                    if (_p1_pos_prev_t != 0) {
+                        state->p1->pos_prev_dt = t - _p1_pos_prev_t;
                     }
-                    p1_pos_prev_t = t;
+                    _p1_pos_prev_t = t;
                     memcpy(state->p1->pos, in, 2 * sizeof(float));
                     _s_ws_send_paddle_positions(state);
                 }
@@ -134,10 +135,10 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
-                    if (p2_pos_prev_t != 0) {
-                        state->p2->pos_prev_dt = t - p2_pos_prev_t;
+                    if (_p2_pos_prev_t != 0) {
+                        state->p2->pos_prev_dt = t - _p2_pos_prev_t;
                     }
-                    p2_pos_prev_t = t;
+                    _p2_pos_prev_t = t;
                     memcpy(state->p2->pos, in, 2 * sizeof(float));
                     _s_ws_send_paddle_positions(state);
                 }

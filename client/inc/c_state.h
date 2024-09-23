@@ -7,7 +7,6 @@
 
 typedef struct CPaddle {
     Vector3 pos;
-    Vector2 vel;
     float alpha;
 } CPaddle;
 

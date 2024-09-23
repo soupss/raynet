@@ -51,9 +51,9 @@ bool _s_paddle_hit_ball(SState * state) {
 
 static void _s_game_loop(SState *s, double dt) {
     if (s_ws_two_paddles_connected(s)) {
-        s->ball->vel[0] += s->ball->curve[0] * BALL_CURVE_INCREASE_FACTOR * dt;
-        s->ball->vel[1] += s->ball->curve[1] * BALL_CURVE_INCREASE_FACTOR * dt;
-        s->ball->vel[2] += s->ball->vel[2] * BALL_ZVEL_INCREASE_FACTOR * dt;
+        s->ball->vel[0] += s->ball->curve[0] * BALL_CURVE_INCREASE_RATE * dt;
+        s->ball->vel[1] += s->ball->curve[1] * BALL_CURVE_INCREASE_RATE * dt;
+        s->ball->vel[2] += s->ball->vel[2] * BALL_ZVEL_INCREASE_RATE * dt;
         s->ball->pos[0] += s->ball->vel[0]*dt;
         bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
         bool right = s->ball->pos[0] - BALL_RADIUS < -ARENA_WIDTH / 2.0;
@@ -80,8 +80,8 @@ static void _s_game_loop(SState *s, double dt) {
                     (s->p1->pos_prev[1] - s->p1->pos[1]) / s->p1->pos_prev_dt,
                 };
                 float curve[2] = {
-                    s->ball->curve[0] * BALL_CURVE_DECREASE_FACTOR + p1_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] * BALL_CURVE_DECREASE_FACTOR + p1_vel[1] * BALL_CURVE_FACTOR
+                    s->ball->curve[0] * BALL_CURVE_DECREASE_RATE + p1_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] * BALL_CURVE_DECREASE_RATE + p1_vel[1] * BALL_CURVE_FACTOR
                 };
                 printf("p1 curve (%f, %f)\n", curve[0], curve[1]);
                 printf("p1 dt (%f)\n", s->p1->pos_prev_dt);
@@ -101,8 +101,8 @@ static void _s_game_loop(SState *s, double dt) {
                     (s->p2->pos_prev[1] - s->p2->pos[1]) / s->p2->pos_prev_dt,
                 };
                 float curve[2] = {
-                    s->ball->curve[0] * BALL_CURVE_DECREASE_FACTOR + p2_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] * BALL_CURVE_DECREASE_FACTOR + p2_vel[1] * BALL_CURVE_FACTOR
+                    s->ball->curve[0] * BALL_CURVE_DECREASE_RATE + p2_vel[0] * BALL_CURVE_FACTOR,
+                    s->ball->curve[1] * BALL_CURVE_DECREASE_RATE + p2_vel[1] * BALL_CURVE_FACTOR
                 };
                 printf("p2 curve (%f, %f)\n", curve[0], curve[1]);
                 printf("p2 dt (%f)\n", s->p2->pos_prev_dt);
