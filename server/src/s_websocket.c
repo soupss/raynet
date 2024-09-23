@@ -25,7 +25,7 @@ void s_ws_send_paddle_hit_ball(SState *s, PLAYER_SIDE side) {
     if (s->p1->wsi != NULL) {
         lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
-    else if (s->p2->wsi != NULL) {
+    if (s->p2->wsi != NULL) {
         lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
     }
 }

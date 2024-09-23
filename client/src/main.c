@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <rlgl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <emscripten/websocket.h>
@@ -48,6 +49,8 @@ static void _c_draw(CState *s) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(s->camera);
+    rlDisableDepthMask(); // for transparency
+    BeginBlendMode(BLEND_ALPHA);
     if (s->p1_alpha > 0) {
         DrawCubeV(s->player1, paddle_size, Fade(PADDLE_1_COLOR, s->p1_alpha));
         s->p1_alpha -= PADDLE_FADE_SPEED;
