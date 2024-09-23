@@ -102,6 +102,7 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
             return EM_TRUE;
             break;
     }
+    return EM_TRUE;
 }
 
 EMSCRIPTEN_WEBSOCKET_T c_ws_init(CState *state) {
