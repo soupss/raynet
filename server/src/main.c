@@ -17,23 +17,37 @@ static void _s_signal_handler() {
     interrupted = 1;
 }
 
-static void _s_reset_ball(SState * state) {
-    state->ball->pos[0] = 0;
-    state->ball->pos[1] = 0;
-    state->ball->pos[2] = 0;
-
-    state->ball->vel[0] = 0;
-    state->ball->vel[1] = 0;
-    state->ball->vel[2] = BALL_STARTING_SPEED;
-
-    state->ball->curve[0] = 0;
-    state->ball->curve[1] = 0;
+static float *_s_ball_calculate_curve(SState *s) {
+    void **pos_history = queue_get_array(s->p1->pos_history);
+    void **pos_dt_history = queue_get_array(s->p1->pos_dt_history);
+    for (int i = 0; i < s->p1->pos_history->length; i++) {
+        float *pos = ((float **)pos_history)[i];
+        printf("%f, %f\n", pos[0], pos[1]);
+    }
+    for (int i = 0; i < s->p1->pos_dt_history->length; i++) {
+        float *dt = ((float **)pos_dt_history)[i];
+        printf("%f\n", *dt);
+    }
+    printf("\n");
 }
 
-bool _s_paddle_hit_ball(SState * state) {
-    SPaddle * p = state->ball->pos[2]>0 ? state->p1 : state->p2;
-    float bx = state->ball->pos[0];
-    float by = state->ball->pos[1];
+static void _s_ball_reset(SState * s) {
+    s->ball->pos[0] = 0;
+    s->ball->pos[1] = 0;
+    s->ball->pos[2] = 0;
+
+    s->ball->vel[0] = 0;
+    s->ball->vel[1] = 0;
+    s->ball->vel[2] = BALL_STARTING_SPEED;
+
+    s->ball->curve[0] = 0;
+    s->ball->curve[1] = 0;
+}
+
+bool _s_paddle_hit_ball(SState * s) {
+    SPaddle * p = s->ball->pos[2]>0 ? s->p1 : s->p2;
+    float bx = s->ball->pos[0];
+    float by = s->ball->pos[1];
     float px = p->pos[0];
     float py = p->pos[1];
     unsigned char is_horizontally_between_edges = bx > px - PADDLE_WIDTH /2.0 && bx < px + PADDLE_WIDTH/2.0;
@@ -75,42 +89,24 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float p1_vel[2] = {
-                    (s->p1->pos_prev[0] - s->p1->pos[0]) / s->p1->pos_prev_dt,
-                    (s->p1->pos_prev[1] - s->p1->pos[1]) / s->p1->pos_prev_dt,
-                };
-                float curve[2] = {
-                    s->ball->curve[0] * BALL_CURVE_DECREASE_RATE + p1_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] * BALL_CURVE_DECREASE_RATE + p1_vel[1] * BALL_CURVE_FACTOR
-                };
-                printf("p1 curve (%f, %f)\n", curve[0], curve[1]);
-                printf("p1 dt (%f)\n", s->p1->pos_prev_dt);
-                memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
+                _s_ball_calculate_curve(s);
+                // memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
-                _s_reset_ball(s);
+                _s_ball_reset(s);
             }
         }
         else if (paddle_2_side) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float p2_vel[2] = {
-                    (s->p2->pos_prev[0] - s->p2->pos[0]) / s->p2->pos_prev_dt,
-                    (s->p2->pos_prev[1] - s->p2->pos[1]) / s->p2->pos_prev_dt,
-                };
-                float curve[2] = {
-                    s->ball->curve[0] * BALL_CURVE_DECREASE_RATE + p2_vel[0] * BALL_CURVE_FACTOR,
-                    s->ball->curve[1] * BALL_CURVE_DECREASE_RATE + p2_vel[1] * BALL_CURVE_FACTOR
-                };
-                printf("p2 curve (%f, %f)\n", curve[0], curve[1]);
-                printf("p2 dt (%f)\n", s->p2->pos_prev_dt);
-                memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
+                _s_ball_calculate_curve(s);
+                // memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
-                _s_reset_ball(s);
+                _s_ball_reset(s);
             }
         }
     }
@@ -127,8 +123,8 @@ int main() {
     srand(time(NULL));
     signal(SIGINT, _s_signal_handler);
     struct lws_context *context = s_ws_create_context();
-    SState *state = lws_context_user(context);
-    _s_reset_ball(state);
+    SState *s = lws_context_user(context);
+    _s_ball_reset(s);
 
     pthread_t *t = malloc(sizeof(pthread_t));
     pthread_create(t, NULL, (void * _Nullable (* _Nonnull)(void * _Nullable)) &_s_thread_service_loop, context);
@@ -144,11 +140,11 @@ int main() {
         double dt = (t1.tv_sec - previous_sec) * 1000.0;
         dt += (t1.tv_usec - previous_usec) / 1000.0;
         dt /= 1000;
-        _s_game_loop(state, dt);
+        _s_game_loop(s, dt);
 
         accumulated_time += dt;
         if (accumulated_time * TICK_RATE > 1) {
-            s_ws_send_ball_state(state);
+            s_ws_send_ball_state(s);
             accumulated_time = 0;
         }
     }

@@ -36,6 +36,10 @@ void s_ws_send_paddle_hit_ball(SState *s, PADDLE_SIDE side) {
     }
 }
 
+bool s_ws_two_paddles_connected(SState *s) {
+    return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
+}
+
 static void _s_ws_send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) {
     bool p1_connected = s->p1->wsi != NULL;
     bool p2_connected = s->p2->wsi != NULL;
@@ -83,16 +87,16 @@ void _s_ws_calculate_ball_curve() {
 }
 
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
-    SState *state = lws_context_user(lws_get_context(wsi));
+    SState *s = lws_context_user(lws_get_context(wsi));
     switch(reason) {
         case LWS_CALLBACK_ESTABLISHED:
-            if (state->p1->wsi == NULL) {
-                state->p1->wsi = wsi;
+            if (s->p1->wsi == NULL) {
+                s->p1->wsi = wsi;
                 _s_ws_send_assign_side(wsi, SIDE_1);
                 printf("paddle 1 connect\n");
             }
-            else if (state->p2->wsi == NULL) {
-                state->p2->wsi = wsi;
+            else if (s->p2->wsi == NULL) {
+                s->p2->wsi = wsi;
                 _s_ws_send_assign_side(wsi, SIDE_2);
                 printf("paddle 2 connect\n");
             }
@@ -104,43 +108,63 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             break;
 
         case LWS_CALLBACK_CLOSED:
-            if (wsi == state->p1->wsi) {
-                state->p1->wsi = NULL;
-                _s_ws_send_paddle_disconnect(state->p2->wsi, SIDE_1);
+            if (wsi == s->p1->wsi) {
+                s->p1->wsi = NULL;
+                _s_ws_send_paddle_disconnect(s->p2->wsi, SIDE_1);
                 printf("paddle 1 disconnect\n");
             }
-            else if (wsi == state->p2->wsi) {
-                state->p2->wsi = NULL;
-                _s_ws_send_paddle_disconnect(state->p1->wsi, SIDE_2);
+            else if (wsi == s->p2->wsi) {
+                s->p2->wsi = NULL;
+                _s_ws_send_paddle_disconnect(s->p1->wsi, SIDE_2);
                 printf("paddle 2 disconnect\n");
             }
             break;
 
         case LWS_CALLBACK_RECEIVE:
             {
-                if (wsi == state->p1->wsi) {
-                    memcpy(state->p1->pos_prev, state->p1->pos, 2 * sizeof(float));
+                if (wsi == s->p1->wsi) {
+                    float *p1_pos = malloc(2 * sizeof(float));
+                    memcpy(p1_pos, in, 2 * sizeof(float));
+                    queue_add(s->p1->pos_history, p1_pos);
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
                     if (_p1_pos_prev_t != 0) {
-                        state->p1->pos_prev_dt = t - _p1_pos_prev_t;
+                        float *dt_pointer = malloc(sizeof(float));
+                        *dt_pointer = t - _p1_pos_prev_t;
+                        queue_add(s->p1->pos_dt_history, dt_pointer);
                     }
                     _p1_pos_prev_t = t;
-                    memcpy(state->p1->pos, in, 2 * sizeof(float));
-                    _s_ws_send_paddle_positions(state);
+                    if (s->p1->pos_history->length >= PADDLE_POS_HISTORY_LENGTH) {
+                        queue_remove(s->p1->pos_history);
+                    }
+                    if (s->p1->pos_dt_history->length >= PADDLE_POS_HISTORY_LENGTH - 1) {
+                        queue_remove(s->p1->pos_dt_history);
+                    }
+                    memcpy(s->p1->pos, p1_pos, 2 * sizeof(float));
+                    _s_ws_send_paddle_positions(s);
                 }
-                else if (wsi == state->p2->wsi) {
-                    memcpy(state->p2->pos_prev, state->p2->pos, 2 * sizeof(float));
+                else if (wsi == s->p2->wsi) {
+                    float *p2_pos = malloc(2 * sizeof(float));
+                    memcpy(p2_pos, in, 2 * sizeof(float));
+                    queue_add(s->p2->pos_history, p2_pos);
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
                     if (_p2_pos_prev_t != 0) {
-                        state->p2->pos_prev_dt = t - _p2_pos_prev_t;
+                        float *dt_pointer = malloc(sizeof(float));
+                        *dt_pointer = t - _p2_pos_prev_t;
+                        queue_add(s->p2->pos_dt_history, dt_pointer);
                     }
                     _p2_pos_prev_t = t;
-                    memcpy(state->p2->pos, in, 2 * sizeof(float));
-                    _s_ws_send_paddle_positions(state);
+                    if (s->p2->pos_history->length >= PADDLE_POS_HISTORY_LENGTH) {
+                        queue_remove(s->p2->pos_history);
+                    }
+                    if (s->p2->pos_dt_history->length >= PADDLE_POS_HISTORY_LENGTH - 2) {
+                        queue_remove(s->p2->pos_dt_history);
+                    }
+                    memcpy(s->p2->pos, p2_pos, 2 * sizeof(float));
+                    _s_ws_send_paddle_positions(s);
                 }
             }
             break;

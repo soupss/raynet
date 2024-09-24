@@ -10,12 +10,12 @@ SState *s_state_create() {
     memcpy(s->p2->pos, zero2, sizeof(zero2));
     memcpy(s->p1->pos_prev, zero2, sizeof(zero2));
     memcpy(s->p2->pos_prev, zero2, sizeof(zero2));
-    memcpy(s->p1->vel, zero2, sizeof(zero2));
-    memcpy(s->p2->vel, zero2, sizeof(zero2));
-    s->p1->pos_prev_dt = 0;
-    s->p2->pos_prev_dt = 0;
     s->p1->wsi = NULL;
     s->p2->wsi = NULL;
+    s->p1->pos_history = queue_create();
+    s->p2->pos_history = queue_create();
+    s->p1->pos_dt_history = queue_create();
+    s->p2->pos_dt_history = queue_create();
     s->ball = malloc(sizeof(SBall));
     float zero3[3] = { 0, 0, 0 };
     memcpy(s->ball->pos, zero3, sizeof(zero3));

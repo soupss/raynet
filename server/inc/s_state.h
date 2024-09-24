@@ -1,12 +1,14 @@
 #ifndef S_STATE_H
 #define S_STATE_H
 
+#include "queue.h"
+
 typedef struct SPaddle {
     float pos[2];
     float pos_prev[2];
-    double pos_prev_dt;
-    float vel[2];
     struct lws *wsi;
+    Queue *pos_history;
+    Queue *pos_dt_history;
 } SPaddle;
 
 typedef struct SBall {
