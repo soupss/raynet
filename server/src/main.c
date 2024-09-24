@@ -17,18 +17,32 @@ static void _s_signal_handler() {
     interrupted = 1;
 }
 
-static float *_s_ball_calculate_curve(SState *s) {
-    void **pos_history = queue_get_array(s->p1->pos_history);
-    void **pos_dt_history = queue_get_array(s->p1->pos_dt_history);
-    for (int i = 0; i < s->p1->pos_history->length; i++) {
-        float *pos = ((float **)pos_history)[i];
-        printf("%f, %f\n", pos[0], pos[1]);
-    }
-    for (int i = 0; i < s->p1->pos_dt_history->length; i++) {
+static float *_s_ball_calculate_curve(SState *s,SPaddle * p) {
+    void **pos_history = queue_get_array(p->pos_history);
+    void **pos_dt_history = queue_get_array(p->pos_dt_history);
+    // for (int i = 0; i < p->pos_history->length; i++) {
+    //     float *pos = ((float **)pos_history)[i];
+    //     printf("%f, %f\n", pos[0], pos[1]);
+    // }
+    // for (int i = 0; i < p->pos_dt_history->length; i++) {
+    //     float *dt = ((float **)pos_dt_history)[i];
+    //     printf("%f\n", *dt);
+    // }
+    float * out = malloc(2*sizeof(float)); 
+    out[0] = 0;
+    out[1] = 0;
+    
+    for (int i = 0; i < p->pos_dt_history->length; i++) {
+        float *prev_pos = ((float **)pos_history)[i];
+        float *next_pos = ((float **)pos_history)[i + 1];
         float *dt = ((float **)pos_dt_history)[i];
-        printf("%f\n", *dt);
+        out[0] += (next_pos[0] - prev_pos[0])/(*dt /1000);
+        out[1] += (next_pos[1] - prev_pos[1])/(*dt /1000);
     }
-    printf("\n");
+    out[0] = -(out[0] / p->pos_dt_history->length) * 1000;
+    out[1] = -(out[1] / p->pos_dt_history->length) * 1000;
+    printf("X: %f, Y:%f\n", out[0], out[1]);
+    return out;
 }
 
 static void _s_ball_reset(SState * s) {
@@ -89,8 +103,9 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                _s_ball_calculate_curve(s);
-                // memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
+                float * curve = _s_ball_calculate_curve(s, s->p1 );
+                s->ball->curve[0] += curve[0];
+                s->ball->curve[1] += curve[1];
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
@@ -101,8 +116,9 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                _s_ball_calculate_curve(s);
-                // memcpy(&s->ball->curve, &curve, 2 * sizeof(float));
+                float * curve = _s_ball_calculate_curve(s, s->p2);
+                s->ball->curve[0] += curve[0];
+                s->ball->curve[1] += curve[1];
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
