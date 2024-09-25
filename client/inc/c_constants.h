@@ -1,7 +1,7 @@
 #ifndef C_CONSTANTS
 #define C_CONSTANTS
 
-#define SERVER_HOSTNAME "192.168.0.103"
+#define SERVER_HOSTNAME "localhost"
 #define WEBSOCKET_OPEN 1
 
 #define FPS 120

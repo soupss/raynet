@@ -17,32 +17,33 @@ static void _s_signal_handler() {
     interrupted = 1;
 }
 
-static float *_s_ball_calculate_curve(SState *s,SPaddle * p) {
+static float *_s_ball_calculate_curve(SPaddle *p) {
     void **pos_history = queue_get_array(p->pos_history);
     void **pos_dt_history = queue_get_array(p->pos_dt_history);
-    // for (int i = 0; i < p->pos_history->length; i++) {
-    //     float *pos = ((float **)pos_history)[i];
-    //     printf("%f, %f\n", pos[0], pos[1]);
-    // }
-    // for (int i = 0; i < p->pos_dt_history->length; i++) {
-    //     float *dt = ((float **)pos_dt_history)[i];
-    //     printf("%f\n", *dt);
-    // }
-    float * out = malloc(2*sizeof(float)); 
-    out[0] = 0;
-    out[1] = 0;
-    
-    for (int i = 0; i < p->pos_dt_history->length; i++) {
-        float *prev_pos = ((float **)pos_history)[i];
-        float *next_pos = ((float **)pos_history)[i + 1];
-        float *dt = ((float **)pos_dt_history)[i];
-        out[0] += (next_pos[0] - prev_pos[0])/(*dt /1000);
-        out[1] += (next_pos[1] - prev_pos[1])/(*dt /1000);
+    float dpos_sum[2] = { 0 };
+    for (int i = p->pos_history->length - 2; i > -1; i--) { //loop backwards to use i
+        float *prev_pos = ((float **)pos_history)[i + 1];
+        float *curr_pos = ((float **)pos_history)[i];
+        // most recent velocities has higher impact on curve
+        float weight_factor = (float)i / PADDLE_POS_HISTORY_LENGTH;
+        dpos_sum[0] += weight_factor * (curr_pos[0] - prev_pos[0]);
+        dpos_sum[1] += weight_factor * (curr_pos[1] - prev_pos[1]);
     }
-    out[0] = -(out[0] / p->pos_dt_history->length) * 1000;
-    out[1] = -(out[1] / p->pos_dt_history->length) * 1000;
-    printf("X: %f, Y:%f\n", out[0], out[1]);
-    return out;
+    float dt_sum = 0;
+    for (int i = 0; i < p->pos_dt_history->length; i++) {
+        float dt = *((float **)pos_dt_history)[i];
+        dt_sum += dt;
+    }
+    float dt_avg = dt_sum / p->pos_dt_history->length;
+    float vel[2] = {
+        dpos_sum[0] / dt_avg,
+        dpos_sum[1] / dt_avg
+    };
+    float *curve = malloc(2 * sizeof(float));
+    curve[0] = vel[0] * BALL_CURVE_FACTOR;
+    curve[1] = vel[1] * BALL_CURVE_FACTOR;
+    printf("%f, %f\n", curve[0], curve[1]);
+    return curve;
 }
 
 static void _s_ball_reset(SState * s) {
@@ -53,9 +54,6 @@ static void _s_ball_reset(SState * s) {
     s->ball->vel[0] = 0;
     s->ball->vel[1] = 0;
     s->ball->vel[2] = BALL_STARTING_SPEED;
-
-    s->ball->curve[0] = 0;
-    s->ball->curve[1] = 0;
 }
 
 bool _s_paddle_hit_ball(SState * s) {
@@ -79,10 +77,8 @@ bool _s_paddle_hit_ball(SState * s) {
 
 static void _s_game_loop(SState *s, double dt) {
     if (s_ws_two_paddles_connected(s)) {
-        s->ball->vel[0] += s->ball->curve[0] * BALL_CURVE_INCREASE_RATE * dt;
-        s->ball->vel[1] += s->ball->curve[1] * BALL_CURVE_INCREASE_RATE * dt;
         s->ball->vel[2] += s->ball->vel[2] * BALL_ZVEL_INCREASE_RATE * dt;
-        s->ball->pos[0] += s->ball->vel[0]*dt;
+        s->ball->pos[0] += s->ball->vel[0] * dt;
         bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
         bool right = s->ball->pos[0] - BALL_RADIUS < -ARENA_WIDTH / 2.0;
         if (left || right) {
@@ -103,9 +99,9 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float * curve = _s_ball_calculate_curve(s, s->p1 );
-                s->ball->curve[0] += curve[0];
-                s->ball->curve[1] += curve[1];
+                float *curve = _s_ball_calculate_curve(s->p1);
+                s->ball->vel[0] += curve[0];
+                s->ball->vel[1] += curve[1];
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
@@ -116,15 +112,17 @@ static void _s_game_loop(SState *s, double dt) {
             if (_s_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float * curve = _s_ball_calculate_curve(s, s->p2);
-                s->ball->curve[0] += curve[0];
-                s->ball->curve[1] += curve[1];
+                float *curve = _s_ball_calculate_curve(s->p2);
+                s->ball->vel[0] += curve[0] * dt;
+                s->ball->vel[1] += curve[1] * dt;
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
                 _s_ball_reset(s);
             }
         }
+        s->ball->vel[0] *= BALL_CURVE_DECREASE_RATE;
+        s->ball->vel[1] *= BALL_CURVE_DECREASE_RATE;
     }
 }
 

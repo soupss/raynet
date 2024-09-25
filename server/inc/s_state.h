@@ -14,7 +14,6 @@ typedef struct SPaddle {
 typedef struct SBall {
     float pos[3];
     float vel[3];
-    float curve[2];
 } SBall;
 
 typedef struct SState {
