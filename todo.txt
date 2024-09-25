@@ -1,0 +1,17 @@
+==FEATURES==
+ball spin
+    more velocity = longer spin time
+    remake paddle velocity to ball rotation mechanic
+spectators
+    vs the winner
+sound
+    more spin = more sound
+score
+ball serve
+show ping
+no cursor script
+increase ball z vel on bounce?
+
+==REFACTOR==
+check malloc fail
+free memory
