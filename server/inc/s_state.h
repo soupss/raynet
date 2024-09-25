@@ -5,15 +5,15 @@
 
 typedef struct SPaddle {
     float pos[2];
-    float pos_prev[2];
     struct lws *wsi;
     Queue *pos_history;
-    Queue *pos_dt_history;
+    Queue *pos_dt_history; // dt between recent pos
 } SPaddle;
 
 typedef struct SBall {
     float pos[3];
     float vel[3];
+    float rot[2];
 } SBall;
 
 typedef struct SState {

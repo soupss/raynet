@@ -83,9 +83,6 @@ static void _s_ws_send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE 
     lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
-void _s_ws_calculate_ball_curve() {
-}
-
 static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
     SState *s = lws_context_user(lws_get_context(wsi));
     switch(reason) {
