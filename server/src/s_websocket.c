@@ -37,7 +37,7 @@ bool s_ws_two_paddles_connected(SState *s) {
     return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
 }
 
-static void _s_ws_send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) {
+static void _send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) {
     bool p1_connected = s->p1->wsi != NULL;
     bool p2_connected = s->p2->wsi != NULL;
     if (side == SIDE_1 && !p1_connected) { return; }
@@ -56,12 +56,12 @@ static void _s_ws_send_paddle_position(SState *s, float *pos, PADDLE_SIDE side) 
     }
 }
 
-static void _s_ws_send_paddle_positions(SState * s) {
-    _s_ws_send_paddle_position(s, s->p1->pos, SIDE_1);
-    _s_ws_send_paddle_position(s, s->p2->pos, SIDE_2);
+static void _send_paddle_positions(SState * s) {
+    _send_paddle_position(s, s->p1->pos, SIDE_1);
+    _send_paddle_position(s, s->p2->pos, SIDE_2);
 }
 
-static void _s_ws_send_assign_side(struct lws *recipient_wsi, PADDLE_SIDE side) {
+static void _send_assign_side(struct lws *recipient_wsi, PADDLE_SIDE side) {
     int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PADDLE_SIDE);
     unsigned char buffer[LWS_PRE + payload_size];
     MESSAGE_TYPE m = MSG_TYPE_ASSIGN_SIDE;
@@ -70,7 +70,7 @@ static void _s_ws_send_assign_side(struct lws *recipient_wsi, PADDLE_SIDE side) 
     lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
-static void _s_ws_send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE dc_side) {
+static void _send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE dc_side) {
     if (recipient_wsi == NULL) {return;}
     int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PADDLE_SIDE);
     unsigned char buffer[LWS_PRE + payload_size];
@@ -80,18 +80,18 @@ static void _s_ws_send_paddle_disconnect(struct lws *recipient_wsi, PADDLE_SIDE 
     lws_write(recipient_wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 }
 
-static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
+static int _callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
     SState *s = lws_context_user(lws_get_context(wsi));
     switch(reason) {
         case LWS_CALLBACK_ESTABLISHED:
             if (s->p1->wsi == NULL) {
                 s->p1->wsi = wsi;
-                _s_ws_send_assign_side(wsi, SIDE_1);
+                _send_assign_side(wsi, SIDE_1);
                 printf("paddle 1 connect\n");
             }
             else if (s->p2->wsi == NULL) {
                 s->p2->wsi = wsi;
-                _s_ws_send_assign_side(wsi, SIDE_2);
+                _send_assign_side(wsi, SIDE_2);
                 printf("paddle 2 connect\n");
             }
             else {
@@ -104,12 +104,12 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         case LWS_CALLBACK_CLOSED:
             if (wsi == s->p1->wsi) {
                 s->p1->wsi = NULL;
-                _s_ws_send_paddle_disconnect(s->p2->wsi, SIDE_1);
+                _send_paddle_disconnect(s->p2->wsi, SIDE_1);
                 printf("paddle 1 disconnect\n");
             }
             else if (wsi == s->p2->wsi) {
                 s->p2->wsi = NULL;
-                _s_ws_send_paddle_disconnect(s->p1->wsi, SIDE_2);
+                _send_paddle_disconnect(s->p1->wsi, SIDE_2);
                 printf("paddle 2 disconnect\n");
             }
             break;
@@ -137,7 +137,7 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         queue_remove(s->p1->pos_dt_history);
                     }
                     memcpy(s->p1->pos, p1_pos, 2 * sizeof(float));
-                    _s_ws_send_paddle_positions(s);
+                    _send_paddle_positions(s);
                 }
                 else if (wsi == s->p2->wsi) {
                     float *p2_pos = malloc(2 * sizeof(float));
@@ -160,7 +160,7 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         queue_remove(s->p2->pos_dt_history);
                     }
                     memcpy(s->p2->pos, p2_pos, 2 * sizeof(float));
-                    _s_ws_send_paddle_positions(s);
+                    _send_paddle_positions(s);
                 }
             }
             break;
@@ -170,10 +170,10 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
     return 0;
 }
 
-static struct lws_protocols _s_ws_protocols[] = {
+static struct lws_protocols _protocols[] = {
     {
         "client-server",
-        _s_ws_callback,
+        _callback,
         0, // per session data size
         1024, // max frame size
     },
@@ -184,7 +184,7 @@ struct lws_context *s_ws_create_context() {
     struct lws_context_creation_info info;
     memset(&info, 0, sizeof(info));
     info.port = PORT;
-    info.protocols = _s_ws_protocols;
+    info.protocols = _protocols;
     info.user = s_state_create();
     struct lws_context *context = lws_create_context(&info);
     if(!context) {

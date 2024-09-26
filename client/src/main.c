@@ -9,7 +9,7 @@
 #include "c_constants.h"
 #include "shared_constants.h"
 
-static void _c_update(CState *s) {
+static void _update(CState *s) {
     Ray mouse = GetMouseRay(GetMousePosition(), s->camera);
     float z = PADDLE_SPACING;
     if (s->side == SIDE_2) {
@@ -45,7 +45,7 @@ static void _c_update(CState *s) {
     }
 }
 
-static void _c_draw(CState *s) {
+static void _draw(CState *s) {
     Vector3 paddle_size = { PADDLE_WIDTH, PADDLE_HEIGHT, 0 };
     BeginDrawing();
     ClearBackground(BLACK);
@@ -80,10 +80,10 @@ static void _c_draw(CState *s) {
     EndDrawing();
 }
 
-static void _c_loop(void *arg) {
+static void _loop(void *arg) {
     CState *s = (CState*)arg;
-    _c_update(s);
-    _c_draw(s);
+    _update(s);
+    _draw(s);
 }
 
 int main() {
@@ -97,7 +97,7 @@ int main() {
     if (ws == -1) {
         return 0;
     }
-    emscripten_set_main_loop_arg(_c_loop, s, FPS, 1);
+    emscripten_set_main_loop_arg(_loop, s, FPS, 1);
     CloseWindow();
     return 0;
 }

@@ -13,11 +13,11 @@
 
 static int interrupted = 0;
 
-static void _s_signal_handler() {
+static void _signal_handler() {
     interrupted = 1;
 }
 
-static float *_s_ball_calculate_rotation(SPaddle *p) {
+static float *_ball_calculate_rotation(SPaddle *p) {
     void **pos_history = queue_get_array(p->pos_history);
     void **pos_dt_history = queue_get_array(p->pos_dt_history);
     float dpos_sum[2] = { 0 };
@@ -45,7 +45,7 @@ static float *_s_ball_calculate_rotation(SPaddle *p) {
     return rot;
 }
 
-static void _s_ball_reset(SState * s) {
+static void _ball_reset(SState * s) {
     s->ball->pos[0] = 0;
     s->ball->pos[1] = 0;
     s->ball->pos[2] = 0;
@@ -58,7 +58,7 @@ static void _s_ball_reset(SState * s) {
     s->ball->rot[1] = 0;
 }
 
-bool _s_paddle_hit_ball(SState * s) {
+static bool _paddle_hit_ball(SState * s) {
     SPaddle * p = s->ball->pos[2]>0 ? s->p1 : s->p2;
     float bx = s->ball->pos[0];
     float by = s->ball->pos[1];
@@ -77,7 +77,7 @@ bool _s_paddle_hit_ball(SState * s) {
     return case1 || case2 || case3 || case4 || case5 || case6 ;
 }
 
-static void _s_game_loop(SState *s, double dt) {
+static void _game_loop(SState *s, double dt) {
     if (s_ws_two_paddles_connected(s)) {
         s->ball->pos[0] += s->ball->vel[0] * dt;
         bool left = s->ball->pos[0] + BALL_RADIUS > ARENA_WIDTH / 2.0;
@@ -97,29 +97,29 @@ static void _s_game_loop(SState *s, double dt) {
         bool paddle_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
         bool paddle_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
         if (paddle_1_side) {
-            if (_s_paddle_hit_ball(s)) {
+            if (_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float *rot = _s_ball_calculate_rotation(s->p1);
+                float *rot = _ball_calculate_rotation(s->p1);
                 s->ball->rot[0] += rot[0];
                 s->ball->rot[1] += rot[1];
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
-                _s_ball_reset(s);
+                _ball_reset(s);
             }
         }
         else if (paddle_2_side) {
-            if (_s_paddle_hit_ball(s)) {
+            if (_paddle_hit_ball(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
-                float *rot = _s_ball_calculate_rotation(s->p2);
+                float *rot = _ball_calculate_rotation(s->p2);
                 s->ball->rot[0] += rot[0];
                 s->ball->rot[1] += rot[1];
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
-                _s_ball_reset(s);
+                _ball_reset(s);
             }
         }
         s->ball->vel[0] += s->ball->rot[0] * dt;
@@ -134,7 +134,7 @@ static void _s_game_loop(SState *s, double dt) {
     }
 }
 
-static void _s_thread_service_loop(struct lws_context *context) {
+static void _thread_service_loop(struct lws_context *context) {
     while(!interrupted) {
         lws_service(context, 1000);
     }
@@ -143,13 +143,13 @@ static void _s_thread_service_loop(struct lws_context *context) {
 
 int main() {
     srand(time(NULL));
-    signal(SIGINT, _s_signal_handler);
+    signal(SIGINT, _signal_handler);
     struct lws_context *context = s_ws_create_context();
     SState *s = lws_context_user(context);
-    _s_ball_reset(s);
+    _ball_reset(s);
 
     pthread_t *t = malloc(sizeof(pthread_t));
-    pthread_create(t, NULL, (void * _Nullable (* _Nonnull)(void * _Nullable)) &_s_thread_service_loop, context);
+    pthread_create(t, NULL, (void * _Nullable (* _Nonnull)(void * _Nullable)) &_thread_service_loop, context);
 
     struct timeval t1;
     gettimeofday(&t1, NULL);
@@ -162,7 +162,7 @@ int main() {
         double dt = (t1.tv_sec - previous_sec) * 1000.0;
         dt += (t1.tv_usec - previous_usec) / 1000.0;
         dt /= 1000;
-        _s_game_loop(s, dt);
+        _game_loop(s, dt);
 
         accumulated_time += dt;
         if (accumulated_time * TICK_RATE > 1) {
