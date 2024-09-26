@@ -5,9 +5,6 @@
 #include "shared_constants.h"
 #include "queue.h"
 
-static long long _p1_pos_prev_t = 0;
-static long long _p2_pos_prev_t = 0;
-
 void s_ws_send_ball_state(SState *s) {
     int payload_size = sizeof(MESSAGE_TYPE) + 3 * sizeof(float);
     unsigned char buffer[LWS_PRE + payload_size];
@@ -126,6 +123,7 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
+                    static long long _p1_pos_prev_t = 0;
                     if (_p1_pos_prev_t != 0) {
                         float *dt_pointer = malloc(sizeof(float));
                         *dt_pointer = t - _p1_pos_prev_t;
@@ -148,6 +146,7 @@ static int _s_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     long long t = (long long)tv.tv_sec * 1000000 + tv.tv_usec;
+                    static long long _p2_pos_prev_t = 0;
                     if (_p2_pos_prev_t != 0) {
                         float *dt_pointer = malloc(sizeof(float));
                         *dt_pointer = t - _p2_pos_prev_t;
