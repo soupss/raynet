@@ -11,6 +11,7 @@ CState *c_state_create() {
     s->paddle1->alpha = PADDLE_MIN_ALPHA;
     s->paddle2->alpha = PADDLE_MIN_ALPHA;
     s->ball = (Vector3){ OUT_OF_BOUNDS, 0, 0 };
+    s->sfx = c_soundeffects_create();
     s->camera = (Camera3D){ 0 };
     s->camera.position = (Vector3){ 0, 0, CAMERA_DISTANCE };
     s->camera.target = (Vector3){ 0, 0, 0 };

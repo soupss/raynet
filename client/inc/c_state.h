@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 #include <emscripten/websocket.h>
+#include "c_sound.h"
 #include "shared_constants.h"
 
 typedef struct CPaddle {
@@ -16,6 +17,7 @@ typedef struct CState {
     CPaddle *paddle2;
     Vector3 ball;
     Camera3D camera;
+    SoundEffects *sfx;
     EMSCRIPTEN_WEBSOCKET_T socket;
 } CState;
 

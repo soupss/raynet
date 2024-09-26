@@ -6,6 +6,7 @@
 #include <emscripten/websocket.h>
 #include "c_websocket.h"
 #include "c_state.h"
+#include "c_sound.h"
 #include "c_constants.h"
 #include "shared_constants.h"
 
@@ -91,6 +92,7 @@ int main() {
     float width = GetMonitorWidth(GetCurrentMonitor()) * 0.8;
     float height = width * 0.7;
     SetWindowSize(width, height);
+    InitAudioDevice();
     CState *s = c_state_create();
     EMSCRIPTEN_WEBSOCKET_T ws = c_ws_init(s);
     s->socket = ws;

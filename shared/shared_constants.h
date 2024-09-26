@@ -24,5 +24,4 @@ typedef enum PADDLE_SIDE {
     SIDE_2
 } PADDLE_SIDE;
 
-
 #endif
