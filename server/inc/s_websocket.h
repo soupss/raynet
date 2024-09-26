@@ -9,6 +9,8 @@
 struct lws_context *s_ws_create_context();
 void s_ws_send_ball_state(SState* state);
 void s_ws_send_paddle_hit_ball(SState *s, PADDLE_SIDE side);
+void s_ws_send_ball_hit_wall(SState *s);
+void s_ws_send_ball_out_of_bounds(SState *s);
 bool s_ws_two_paddles_connected(SState *state);
 
 #endif

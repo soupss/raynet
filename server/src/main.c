@@ -85,6 +85,7 @@ static void _game_loop(SState *s, double dt) {
         if (left || right) {
             s->ball->pos[0] -= s->ball->vel[0]*dt;
             s->ball->vel[0] *= -1;
+            s_ws_send_ball_hit_wall(s);
         }
         s->ball->pos[1] += s->ball->vel[1]*dt;
         bool top = s->ball->pos[1] + BALL_RADIUS > ARENA_HEIGHT / 2.0;
@@ -92,6 +93,7 @@ static void _game_loop(SState *s, double dt) {
         if (top || bottom) {
             s->ball->pos[1] -= s->ball->vel[1]*dt;
             s->ball->vel[1] *= -1;
+            s_ws_send_ball_hit_wall(s);
         }
         s->ball->pos[2] += s->ball->vel[2]*dt;
         bool paddle_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
@@ -106,6 +108,7 @@ static void _game_loop(SState *s, double dt) {
                 s_ws_send_paddle_hit_ball(s, SIDE_1);
             }
             else {
+                s_ws_send_ball_out_of_bounds(s);
                 _ball_reset(s);
             }
         }
@@ -119,6 +122,7 @@ static void _game_loop(SState *s, double dt) {
                 s_ws_send_paddle_hit_ball(s, SIDE_2);
             }
             else {
+                s_ws_send_ball_out_of_bounds(s);
                 _ball_reset(s);
             }
         }

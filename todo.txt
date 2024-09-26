@@ -5,6 +5,7 @@ spectators
     vs the winner
 sound
     more spin = more sound
+    no sound overlap (different freq.)
 score
 ball serve
 show ping

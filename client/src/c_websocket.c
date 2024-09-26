@@ -73,6 +73,12 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 }
             }
             break;
+        case MSG_TYPE_BALL_HIT_WALL:
+            PlaySound(s->sfx->ball_hit_wall);
+            break;
+        case MSG_TYPE_BALL_OUT_OF_BOUNDS:
+            PlaySound(s->sfx->ball_out);
+            break;
         case MSG_TYPE_ASSIGN_SIDE:
             {
                 PADDLE_SIDE side;

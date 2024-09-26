@@ -33,6 +33,32 @@ void s_ws_send_paddle_hit_ball(SState *s, PADDLE_SIDE side) {
     }
 }
 
+void s_ws_send_ball_hit_wall(SState *s) {
+    int payload_size = sizeof(MESSAGE_TYPE);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_BALL_HIT_WALL;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    if (s->p1->wsi != NULL) {
+        lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+    if (s->p2->wsi != NULL) {
+        lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+}
+
+void s_ws_send_ball_out_of_bounds(SState *s) {
+    int payload_size = sizeof(MESSAGE_TYPE);
+    unsigned char buffer[LWS_PRE + payload_size];
+    MESSAGE_TYPE m = MSG_TYPE_BALL_OUT_OF_BOUNDS;
+    memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
+    if (s->p1->wsi != NULL) {
+        lws_write(s->p1->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+    if (s->p2->wsi != NULL) {
+        lws_write(s->p2->wsi, &buffer[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    }
+}
+
 bool s_ws_two_paddles_connected(SState *s) {
     return (s->p1->wsi != NULL) && (s->p2->wsi != NULL);
 }
