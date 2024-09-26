@@ -1,6 +1,5 @@
 ==FEATURES==
 ball spin
-    more velocity = longer spin time
     remake paddle velocity to ball rotation mechanic
 spectators
     vs the winner
