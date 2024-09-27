@@ -19,10 +19,10 @@ void s_ws_send_ball_state(SState *s) {
     }
 }
 
-void s_ws_send_paddle_hit_ball(SState *s, PADDLE_SIDE side) {
+void s_ws_send_ball_hit_paddle(SState *s, PADDLE_SIDE side) {
     int payload_size = sizeof(MESSAGE_TYPE) + sizeof(PADDLE_SIDE);
     unsigned char buffer[LWS_PRE + payload_size];
-    MESSAGE_TYPE m = MSG_TYPE_PADDLE_HIT_BALL;
+    MESSAGE_TYPE m = MSG_TYPE_BALL_HIT_PADDLE;
     memcpy(&buffer[LWS_PRE], &m, sizeof(MESSAGE_TYPE));
     memcpy(&buffer[LWS_PRE + sizeof(MESSAGE_TYPE)], &side, sizeof(PADDLE_SIDE));
     if (s->p1->wsi != NULL) {

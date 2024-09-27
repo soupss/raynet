@@ -60,7 +60,7 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
         case MSG_TYPE_SEND_BALL:
             memcpy(&s->ball, payload, 3*sizeof(float));
             break;
-        case MSG_TYPE_PADDLE_HIT_BALL:
+        case MSG_TYPE_BALL_HIT_PADDLE:
             {
                 PlaySound(s->sfx->ball_hit_paddle);
                 PADDLE_SIDE side;

@@ -56,7 +56,7 @@ static void _ball_reset(SState * s) {
     s->ball->rot[1] = 0;
 }
 
-static bool _paddle_hit_ball(SState * s) {
+static bool _ball_hit_paddle(SState * s) {
     SPaddle * p = s->ball->pos[2]>0 ? s->p1 : s->p2;
     float bx = s->ball->pos[0];
     float by = s->ball->pos[1];
@@ -97,13 +97,13 @@ static void _game_loop(SState *s, double dt) {
         bool paddle_1_side = s->ball->pos[2] + BALL_RADIUS > ARENA_LENGTH / 2.0;
         bool paddle_2_side = s->ball->pos[2] - BALL_RADIUS < -ARENA_LENGTH / 2.0;
         if (paddle_1_side) {
-            if (_paddle_hit_ball(s)) {
+            if (_ball_hit_paddle(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
                 float *rot = _ball_calculate_rotation(s->p1);
                 s->ball->rot[0] += rot[0];
                 s->ball->rot[1] += rot[1];
-                s_ws_send_paddle_hit_ball(s, SIDE_1);
+                s_ws_send_ball_hit_paddle(s, SIDE_1);
             }
             else {
                 s_ws_send_ball_out_of_bounds(s);
@@ -111,13 +111,13 @@ static void _game_loop(SState *s, double dt) {
             }
         }
         else if (paddle_2_side) {
-            if (_paddle_hit_ball(s)) {
+            if (_ball_hit_paddle(s)) {
                 s->ball->pos[2] -= s->ball->vel[2]*dt;
                 s->ball->vel[2] *= -1;
                 float *rot = _ball_calculate_rotation(s->p2);
                 s->ball->rot[0] += rot[0];
                 s->ball->rot[1] += rot[1];
-                s_ws_send_paddle_hit_ball(s, SIDE_2);
+                s_ws_send_ball_hit_paddle(s, SIDE_2);
             }
             else {
                 s_ws_send_ball_out_of_bounds(s);
