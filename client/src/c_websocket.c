@@ -48,12 +48,12 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 float pos[2];
                 memcpy(&pos, payload + sizeof(PADDLE_SIDE), 2 * sizeof(float));
                 if (side == SIDE_1) {
-                    s->paddle1->pos.x = pos[0];
-                    s->paddle1->pos.y = pos[1];
+                    s->p1->pos.x = pos[0];
+                    s->p1->pos.y = pos[1];
                 }
                 if (side == SIDE_2) {
-                    s->paddle2->pos.x = pos[0];
-                    s->paddle2->pos.y = pos[1];
+                    s->p2->pos.x = pos[0];
+                    s->p2->pos.y = pos[1];
                 }
             }
             break;
@@ -66,10 +66,10 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 PADDLE_SIDE side;
                 memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 if (side == SIDE_1) {
-                    s->paddle1->alpha = 1.0;
+                    s->p1->alpha = 1.0;
                 }
                 else if (side == SIDE_2) {
-                    s->paddle2->alpha = 1.0;
+                    s->p2->alpha = 1.0;
                 }
             }
             break;
@@ -98,10 +98,10 @@ static EM_BOOL _on_message(int event_type, const EmscriptenWebSocketMessageEvent
                 PADDLE_SIDE side;
                 memcpy(&side, payload, sizeof(PADDLE_SIDE));
                 if (side == SIDE_1) {
-                    s->paddle1->pos.x = OUT_OF_BOUNDS;
+                    s->p1->pos.x = OUT_OF_BOUNDS;
                 }
                 else if (side == SIDE_2) {
-                    s->paddle2->pos.x = OUT_OF_BOUNDS;
+                    s->p2->pos.x = OUT_OF_BOUNDS;
                 }
             }
             break;

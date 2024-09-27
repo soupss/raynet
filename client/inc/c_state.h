@@ -13,8 +13,8 @@ typedef struct CPaddle {
 
 typedef struct CState {
     PADDLE_SIDE side;
-    CPaddle *paddle1; //TODO: change to p1
-    CPaddle *paddle2;
+    CPaddle *p1;
+    CPaddle *p2;
     Vector3 ball;
     Camera3D camera;
     SoundEffects *sfx;

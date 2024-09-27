@@ -4,12 +4,12 @@
 
 CState *c_state_create() {
     CState *s = malloc(sizeof(CState));
-    s->paddle1 = malloc(sizeof(CPaddle));
-    s->paddle2 = malloc(sizeof(CPaddle));
-    s->paddle1->pos = (Vector3){ OUT_OF_BOUNDS, 0, PADDLE_SPACING };
-    s->paddle2->pos = (Vector3){ OUT_OF_BOUNDS, 0, -PADDLE_SPACING };
-    s->paddle1->alpha = PADDLE_MIN_ALPHA;
-    s->paddle2->alpha = PADDLE_MIN_ALPHA;
+    s->p1 = malloc(sizeof(CPaddle));
+    s->p2 = malloc(sizeof(CPaddle));
+    s->p1->pos = (Vector3){ OUT_OF_BOUNDS, 0, PADDLE_SPACING };
+    s->p2->pos = (Vector3){ OUT_OF_BOUNDS, 0, -PADDLE_SPACING };
+    s->p1->alpha = PADDLE_MIN_ALPHA;
+    s->p2->alpha = PADDLE_MIN_ALPHA;
     s->ball = (Vector3){ OUT_OF_BOUNDS, 0, 0 };
     s->sfx = c_soundeffects_create();
     s->camera = (Camera3D){ 0 };
@@ -24,7 +24,7 @@ CState *c_state_create() {
 }
 
 void c_state_destroy(CState *s) {
-    free(s->paddle1);
-    free(s->paddle2);
+    free(s->p1);
+    free(s->p2);
     free(s);
 }

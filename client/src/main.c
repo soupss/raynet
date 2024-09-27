@@ -37,12 +37,12 @@ static void _update(CState *s) {
     }
     c_ws_send_paddle_state(s->socket, pos);
     if (s->side == SIDE_1) {
-        s->paddle1->pos.x = pos[0];
-        s->paddle1->pos.y = pos[1];
+        s->p1->pos.x = pos[0];
+        s->p1->pos.y = pos[1];
     }
     else if (s->side == SIDE_2) {
-        s->paddle2->pos.x = pos[0];
-        s->paddle2->pos.y = pos[1];
+        s->p2->pos.x = pos[0];
+        s->p2->pos.y = pos[1];
     }
 }
 
@@ -53,18 +53,18 @@ static void _draw(CState *s) {
     BeginMode3D(s->camera);
     rlDisableDepthMask(); // for transparency
     BeginBlendMode(BLEND_ALPHA);
-    if (s->paddle1->alpha > PADDLE_MIN_ALPHA) {
-        DrawCubeV(s->paddle1->pos, paddle_size, Fade(PADDLE_1_COLOR, s->paddle1->alpha));
-        s->paddle1->alpha -= PADDLE_FADE_SPEED;
-        if (s->paddle1->alpha < PADDLE_MIN_ALPHA) { s->paddle1->alpha = PADDLE_MIN_ALPHA; }
+    if (s->p1->alpha > PADDLE_MIN_ALPHA) {
+        DrawCubeV(s->p1->pos, paddle_size, Fade(PADDLE_1_COLOR, s->p1->alpha));
+        s->p1->alpha -= PADDLE_FADE_SPEED;
+        if (s->p1->alpha < PADDLE_MIN_ALPHA) { s->p1->alpha = PADDLE_MIN_ALPHA; }
     }
-    if (s->paddle2->alpha > PADDLE_MIN_ALPHA) {
-        DrawCubeV(s->paddle2->pos, paddle_size, Fade(PADDLE_2_COLOR, s->paddle2->alpha));
-        s->paddle2->alpha -= PADDLE_FADE_SPEED;
-        if (s->paddle2->alpha < PADDLE_MIN_ALPHA) { s->paddle2->alpha = PADDLE_MIN_ALPHA; }
+    if (s->p2->alpha > PADDLE_MIN_ALPHA) {
+        DrawCubeV(s->p2->pos, paddle_size, Fade(PADDLE_2_COLOR, s->p2->alpha));
+        s->p2->alpha -= PADDLE_FADE_SPEED;
+        if (s->p2->alpha < PADDLE_MIN_ALPHA) { s->p2->alpha = PADDLE_MIN_ALPHA; }
     }
-    DrawCubeWiresV(s->paddle1->pos, paddle_size, PADDLE_1_COLOR);
-    DrawCubeWiresV(s->paddle2->pos, paddle_size, PADDLE_2_COLOR);
+    DrawCubeWiresV(s->p1->pos, paddle_size, PADDLE_1_COLOR);
+    DrawCubeWiresV(s->p2->pos, paddle_size, PADDLE_2_COLOR);
     DrawSphereWires(s->ball, BALL_RADIUS, BALL_DETAIL, BALL_DETAIL, BALL_COLOR);
     float tracker_z = s->ball.z * (ARENA_LENGTH / (float)(ARENA_LENGTH - BALL_RADIUS * 2));
     Vector3 tracker_pos = { 0, 0, tracker_z };
