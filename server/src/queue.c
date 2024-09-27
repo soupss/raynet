@@ -7,6 +7,10 @@ Queue *queue_create() {
     return q;
 }
 
+void queue_destroy(Queue *q) {
+    free(q);
+}
+
 int queue_add(Queue *q, void *data) {
     QueueNode *node = malloc(sizeof(QueueNode));
     node->data = data;

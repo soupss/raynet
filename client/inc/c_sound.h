@@ -10,5 +10,6 @@ typedef struct SoundEffects {
 } SoundEffects;
 
 SoundEffects *c_soundeffects_create();
+void c_soundeffects_destroy(SoundEffects *sfx);
 
 #endif

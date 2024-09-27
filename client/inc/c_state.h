@@ -13,7 +13,7 @@ typedef struct CPaddle {
 
 typedef struct CState {
     PADDLE_SIDE side;
-    CPaddle *paddle1;
+    CPaddle *paddle1; //TODO: change to p1
     CPaddle *paddle2;
     Vector3 ball;
     Camera3D camera;
@@ -22,5 +22,6 @@ typedef struct CState {
 } CState;
 
 CState *c_state_create();
+void c_state_destroy(CState *s);
 
 #endif

@@ -21,3 +21,10 @@ SState *s_state_create() {
     memcpy(s->ball->rot, zero2, sizeof(zero2));
     return s;
 }
+
+void s_state_destroy(SState *s) {
+    free(s->p1);
+    free(s->p2);
+    free(s->ball);
+    free(s);
+}

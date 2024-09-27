@@ -22,3 +22,9 @@ CState *c_state_create() {
     s->side = SIDE_UNASSIGNED; // needs to be assigned manually
     return s;
 }
+
+void c_state_destroy(CState *s) {
+    free(s->paddle1);
+    free(s->paddle2);
+    free(s);
+}

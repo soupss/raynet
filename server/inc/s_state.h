@@ -23,5 +23,6 @@ typedef struct SState {
 } SState;
 
 SState *s_state_create();
+void s_state_destroy(SState *s);
 
 #endif

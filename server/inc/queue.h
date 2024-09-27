@@ -16,6 +16,7 @@ typedef struct Queue {
 } Queue;
 
 Queue *queue_create();
+void queue_destroy(Queue *q);
 int queue_add(Queue *q, void *data);
 void *queue_remove(Queue *q);
 void **queue_get_array(Queue *q);

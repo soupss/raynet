@@ -1,4 +1,5 @@
 ==FEATURES==
+tracker speed
 ball spin
     remake paddle velocity to ball rotation mechanic
 spectators
@@ -10,8 +11,6 @@ score
 ball serve
 show ping
 no cursor script
-increase ball z vel on bounce?
 
 ==REFACTOR==
 check malloc fail
-free memory

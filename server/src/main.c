@@ -49,11 +49,9 @@ static void _ball_reset(SState * s) {
     s->ball->pos[0] = 0;
     s->ball->pos[1] = 0;
     s->ball->pos[2] = 0;
-
     s->ball->vel[0] = 0;
     s->ball->vel[1] = 0;
     s->ball->vel[2] = BALL_STARTING_SPEED;
-
     s->ball->rot[0] = 0;
     s->ball->rot[1] = 0;
 }
@@ -145,6 +143,7 @@ static void _thread_service_loop(struct lws_context *context) {
     lws_context_destroy(context);
 }
 
+
 int main() {
     srand(time(NULL));
     signal(SIGINT, _signal_handler);
@@ -174,9 +173,10 @@ int main() {
             accumulated_time = 0;
         }
     }
-
     //Not correct way to kill a thread
     //since the thread might be in the middle of doing something important
     pthread_cancel(t);
+    lws_context_destroy(context);
+    s_state_destroy(s);
     return 0;
 }

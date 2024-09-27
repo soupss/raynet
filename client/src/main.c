@@ -87,6 +87,13 @@ static void _loop(void *arg) {
     _draw(s);
 }
 
+static void _destroy(CState *s){
+    c_soundeffects_destroy(s->sfx);
+    c_state_destroy(s);
+    CloseAudioDevice();
+    CloseWindow();
+}
+
 int main() {
     InitWindow(1, 1, "3D Pong");
     float width = GetMonitorWidth(GetCurrentMonitor()) * 0.8;
@@ -100,6 +107,6 @@ int main() {
         return 0;
     }
     emscripten_set_main_loop_arg(_loop, s, FPS, 1);
-    CloseWindow();
+    _destroy(s);
     return 0;
 }
