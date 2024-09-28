@@ -13,4 +13,5 @@ void c_soundeffects_destroy(SoundEffects *sfx) {
     UnloadSound(sfx->ball_hit_wall);
     UnloadSound(sfx->ball_hit_paddle);
     UnloadSound(sfx->ball_out);
+    free(sfx);
 }

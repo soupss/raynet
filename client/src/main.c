@@ -88,7 +88,6 @@ static void _loop(void *arg) {
 }
 
 static void _destroy(CState *s){
-    c_soundeffects_destroy(s->sfx);
     c_state_destroy(s);
     CloseAudioDevice();
     CloseWindow();

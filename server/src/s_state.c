@@ -26,5 +26,9 @@ void s_state_destroy(SState *s) {
     free(s->p1);
     free(s->p2);
     free(s->ball);
+    queue_destroy(s->p1->pos_history);
+    queue_destroy(s->p1->pos_dt_history);
+    queue_destroy(s->p2->pos_history);
+    queue_destroy(s->p2->pos_dt_history);
     free(s);
 }

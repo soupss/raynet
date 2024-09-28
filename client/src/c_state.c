@@ -26,5 +26,6 @@ CState *c_state_create() {
 void c_state_destroy(CState *s) {
     free(s->p1);
     free(s->p2);
+    c_soundeffects_destroy(s->sfx);
     free(s);
 }

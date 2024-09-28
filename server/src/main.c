@@ -103,6 +103,7 @@ static void _game_loop(SState *s, double dt) {
                 float *rot = _ball_calculate_rotation(s->p1);
                 s->ball->rot[0] += rot[0];
                 s->ball->rot[1] += rot[1];
+                free(rot);
                 s_ws_send_ball_hit_paddle(s, SIDE_1);
             }
             else {
