@@ -143,7 +143,7 @@ static int _callback(struct lws *wsi, enum lws_callback_reasons reason, void *us
         case LWS_CALLBACK_RECEIVE:
             {
                 if (wsi == s->p1->wsi) {
-                    float *p1_pos = malloc(2 * sizeof(float));
+                    float *p1_pos = malloc(2 * sizeof(float)); // need to be freed
                     memcpy(p1_pos, in, 2 * sizeof(float));
                     queue_add(s->p1->pos_history, p1_pos);
                     struct timeval tv;
@@ -157,10 +157,10 @@ static int _callback(struct lws *wsi, enum lws_callback_reasons reason, void *us
                     }
                     _p1_pos_prev_t = t;
                     if (s->p1->pos_history->length >= PADDLE_POS_HISTORY_LENGTH) {
-                        queue_remove(s->p1->pos_history);
+                        free(queue_remove(s->p1->pos_history));
                     }
                     if (s->p1->pos_dt_history->length >= PADDLE_POS_HISTORY_LENGTH - 1) {
-                        queue_remove(s->p1->pos_dt_history);
+                        free(queue_remove(s->p1->pos_dt_history));
                     }
                     memcpy(s->p1->pos, p1_pos, 2 * sizeof(float));
                     _send_paddle_positions(s);
@@ -180,10 +180,10 @@ static int _callback(struct lws *wsi, enum lws_callback_reasons reason, void *us
                     }
                     _p2_pos_prev_t = t;
                     if (s->p2->pos_history->length >= PADDLE_POS_HISTORY_LENGTH) {
-                        queue_remove(s->p2->pos_history);
+                        free(queue_remove(s->p2->pos_history));
                     }
                     if (s->p2->pos_dt_history->length >= PADDLE_POS_HISTORY_LENGTH - 2) {
-                        queue_remove(s->p2->pos_dt_history);
+                        free(queue_remove(s->p2->pos_dt_history));
                     }
                     memcpy(s->p2->pos, p2_pos, 2 * sizeof(float));
                     _send_paddle_positions(s);
